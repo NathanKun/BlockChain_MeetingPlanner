@@ -2,7 +2,7 @@ pragma solidity ^0.4.2;
 
 contract MeetingPlanner {
 
-
+	// struct meeting
 	struct  Meeting {
 		uint id;
 		bool required;
