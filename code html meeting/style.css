@@ -1,0 +1,83 @@
+body {
+	margin: 0;
+	padding: 0;
+	background: url(pcl.jpg);
+	background-size:cover;
+	background-position : center;
+	font-family : sans-serif;
+}
+
+	.meetingbox{
+		width: 320px;
+		height: 300px;
+		background: #000;
+		color:#fff;
+		top: 50%;
+		left: 50%;
+		position : absolute;
+		transform: translate(-50%, -50%);
+		box-sizing: border-box;
+		padding: 70px 30px;
+		
+	}
+	
+	.avatar{
+		width: 100px;
+		height: 100px;
+		border-radius: 50%;
+		position: absolute;
+		top : -50px;
+		left: calc(50% - 50px);
+	}
+	
+	h1{
+		margin: 0;
+		padding: 0 0 20px;
+		text-align: center;
+		font-size: 22px;
+	}
+	
+	.meetingbox p{
+		margin-bottom: 2px;
+		padding: 0;
+		font-weight: bold;
+		font-style: italic
+	}
+	
+	.meetingbox input{
+		width: 100%;
+		margin-bottom: 50px;
+	}
+	
+	.meetingbox input[type="text"]
+	{
+		border: none;
+		border-bottom: 1px solid #fff;
+		background: transparent;
+		outline: none;
+		height: 40px;
+		color : #fff;
+		font-size: 16px;
+	}
+	.meetingbox input[type = "submit"]
+	{
+		border: none;
+		outline: none;
+		height: 40px;
+		background : #fb2525;
+		color: #fff;
+		font-size: 18px;
+		border-radius : 20px;
+	}
+	
+	.meetingbox input[type="submit"]:hover
+	{
+		cursor: pointer;
+		background: #ffc107;
+		color: #000;
+	}
+	
+	
+		
+		
+		
