@@ -2,7 +2,6 @@ pragma solidity ^0.4.2;
 
 contract MeetingPlanner {
 
-
 	struct  Meeting {
 		uint id;
 		bool required;
@@ -32,15 +31,15 @@ contract MeetingPlanner {
     }
 
 	//Search a meeting with some id argument
-	function SearchMeeting(uint id ) public returns (bool exist){
+	function SearchMeeting(uint id) public returns (bool exist){
 
-    for( uint j=0 ; j < Meeting_List.length ; j++){
-        if(Meeting_List[j].id == id ){
-            return true;
-        }
-        else {
-            return false;
-        }
+		for( uint j=0 ; j < Meeting_List.length ; j++){
+			if(Meeting_List[j].id == id ){
+				return true;
+			}
+			else {
+				return false;
+			}
         }
     }
 }
