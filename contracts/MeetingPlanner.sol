@@ -21,14 +21,14 @@ contract MeetingPlanner {
 	function MeetingPlanner() {
 
 	}
-	
-	function User(){
 
+
+	/*function User(){
 		User memory user1 = User{
 			name: 'n1';
 			mail: 'm1';
-		}
-	}
+			}
+	}*/
 
 	// Create a meeting with a description argument
     function CreateMeeting(string _description, bool _required) public {
