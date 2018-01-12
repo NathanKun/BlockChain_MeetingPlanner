@@ -2,6 +2,10 @@ pragma solidity ^0.4.2;
 
 contract MeetingPlanner {
 
+	struct User{
+		string name;
+		string mail;
+	}
 	struct  Meeting {
 		uint id;
 		bool required;
@@ -11,10 +15,19 @@ contract MeetingPlanner {
 		uint date;
 	}
 
+	mapping (address => User) UserList;
     Meeting[] Meeting_List;
 
 	function MeetingPlanner() {
 
+	}
+	
+	function User(){
+
+		User memory user1 = User{
+			name: 'n1';
+			mail: 'm1';
+		}
 	}
 
 	// Create a meeting with a description argument
@@ -43,21 +56,9 @@ contract MeetingPlanner {
         }
     }
 
-	struct User{
-    string name;
-    string mail;
-}
 
 
 
-mapping (address => User) UserList;
 
-function User(){
-
-    User memory user1 = User{
-        name: 'n1';
-        mail: 'm1';
-    }
-}
 
 }
