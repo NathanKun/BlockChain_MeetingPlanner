@@ -42,4 +42,22 @@ contract MeetingPlanner {
 			}
         }
     }
+
+	struct User{
+    string name;
+    string mail;
+}
+
+
+
+mapping (address => User) UserList;
+
+function User(){
+
+    User memory user1 = User{
+        name: 'n1';
+        mail: 'm1';
+    }
+}
+
 }
