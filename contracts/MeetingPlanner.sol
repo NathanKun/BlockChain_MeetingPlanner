@@ -57,8 +57,17 @@ contract MeetingPlanner {
         }
     }
 
+	//Delete a meeting with some id argument
+	function DeleteMeeting(uint id) {
+		for( uint j=0 ; j < Meeting_List.length ; j++){
+			if(Meeting_List[j].id == id ){
+				delete Meeting_List[j];
+			}
+        }
+    }
 
-// set the required attribute of the meeting
+
+	// set the required attribute of the meeting
     function setMeetingRequired(uint id,bool _required) public returns(bool){
         for( uint j=0 ; j < Meeting_List.length ; j++){
 			if(Meeting_List[j].id == id ){
