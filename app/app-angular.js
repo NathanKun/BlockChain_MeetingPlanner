@@ -65,7 +65,7 @@ myApp.controller('meetingIndexController', function(MeetingIndexService, $scope,
   $scope.createMeeting = function() {
     // call createContract() in MeetingIndexService service and pass 'description' from page to it
     MeetingIndexService.createMeeting($scope.description);
-    //console.log($scope.description);
+    console.log($scope.description);
   }
 
   $scope.searchMeeting = function() {
