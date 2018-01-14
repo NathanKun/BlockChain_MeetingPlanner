@@ -1,49 +1,38 @@
 <html>
 
 <head>
-    <title>Meeting Planner</title>
+  <title>Meeting Planner</title>
 
-    <!-- Required meta tags for bootstrap -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <!-- Required meta tags for bootstrap -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="assets/bootstrap.min.css">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="assets/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="assets/style.css">
 
-    <!-- Loading truffle app -->
-    <script src="./app.js"></script>
+  <!-- Loading truffle app -->
+  <script src="./app.js"></script>
 
-    <!-- Loading angular app -->
-    <script src="assets/angular.min.js"></script>
-    <script src="app-angular.js"></script>
-    <script src="https://use.fontawesome.com/405c2d7413.js"></script>
+  <!-- Loading angular app -->
+  <script src="assets/angular.min.js"></script>
+  <script src="assets/angular-route.min.js"></script>
+  <script src="app-angular.js"></script>
+  <script src="https://use.fontawesome.com/405c2d7413.js"></script>
 
 </head>
-<body ng-controller="helloworldController">
-    <div class="container ui-view-container">
-		<h1>{{ title }}</h1>
-    <form>
-  <div class="form-group">
-    <label for="exampleInputEmail1">Email address</label>
-    <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
-    <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
-  </div>
-  <div class="form-group">
-    <label for="exampleInputPassword1">Password</label>
-    <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
-  </div>
 
-  <button type="submit" class="btn btn-primary">Submit</button>
-</form>
-    </div>
+<body>
+  <ng-view>
+  </ng-view>
 </body>
 
 
 <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
 <script>
-    window.addEventListener('load', function() {
-      angular.bootstrap(document, ['app'])
-    })
- </script>
+  window.addEventListener('load', function() {
+    angular.bootstrap(document, ['app'])
+  })
+</script>
 
 </html>

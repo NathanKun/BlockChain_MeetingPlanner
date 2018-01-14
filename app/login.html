@@ -1,0 +1,12 @@
+<div ng-controller="LoginIndexController">
+	<div class="container ui-view-container">
+		<h1>{{ title }}</h1>
+		<form>
+				<div class="form-group">
+				<label for="exampleInputPassword1">Address</label>
+				<input type="password" class="form-control" id="exampleInputAddress1" ng-model="address" placeholder="address">
+			</div>
+			<button type="submit" class="btn btn-primary" ng-click="verifiyLogin()">Submit</button>
+		</form>
+	</div>
+</div>

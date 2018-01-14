@@ -1,6 +1,8 @@
 module.exports = {
   build: {
     "index.html": "index.html",
+    "login.html": "login.html",
+    "MeetingIndex.html": "MeetingIndex.html",
     "app-angular.js": "app-angular.js",
     "app.js": [
       "truffle/app.js"
