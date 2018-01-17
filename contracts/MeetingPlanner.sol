@@ -1,7 +1,11 @@
-pragma solidity ^0.4.2;
+pragma solidity ^0.4.8;
 
 contract MeetingPlanner {
+	
+	/* enums */
+	enum MeetingStatus {WAITING, ACCEPTED, REFUSED, CANCELED}
 
+    /* structures */
 	struct User{
 		string name;
 		string mail;
@@ -15,26 +19,40 @@ contract MeetingPlanner {
 		string lieu;
 		uint date;
 	}
-
-	mapping (address => User) UserList;
-    Meeting[] Meeting_List;
-
-	function MeetingPlanner() {
-
+	
+	struct Invitation {
+	    uint id;
+		address organizer;
+		address participant;
+		uint meetingId;
+		MeetingStatus status;
 	}
 
+    /* global storages */
+	mapping (address => User) userList;
+    Meeting[] meetingList;
+    Invitation[] invitations;
 
-	/*function User(){
-		User memory user1 = User{
-			name: 'n1';
-			mail: 'm1';
-			}
-	}*/
+    /* constructor of contract */
+	function MeetingPlanner() public {
+	    // seed of user
+        userList[0x4dB2Da7660a1E2eDc15CAcD815c39D0574103Cb3] = 
+            User("Junyang", "junyang.he@groupe-esigelec.org");
+        userList[0x013BA5D38F3A03C63909d48be7A81Df2B60A61F4] = 
+            User("Yuzhou", "yuzhou.song@groupe-esigelec.org");
+        userList[0xfAc6Be69d005cAA557B2e36c6FB41959188C438c] = 
+            User("Charaf", "c.i@groupe-esigelec.org");
+        userList[0x465CaA1267d97eC054635704Ed68102970CB6Adc] = 
+            User("José", "j.d@groupe-esigelec.org");
+        userList[0xeA8328FcA972E48D9beC1039400be99D4cE760BE] = 
+            User("Gael", "g.o@groupe-esigelec.org");
+	}
 
+    /* Methods for Meeting */
 	// Create a meeting with a description argument
-    function CreateMeeting(string _description, bool _required){
+    function CreateMeeting(string _description, bool _required) public {
 
-		Meeting_List.push(Meeting({
+		meetingList.push(Meeting({
 			id: 1,
 			manager: msg.sender,
 			description: _description,
@@ -45,10 +63,10 @@ contract MeetingPlanner {
     }
 
 	//Search a meeting with some id argument
-	function SearchMeeting(uint id) public returns (bool exist){
+	function SearchMeeting(uint id) public constant returns (bool exist) {
 
-		for( uint j=0 ; j < Meeting_List.length ; j++){
-			if(Meeting_List[j].id == id ){
+		for( uint j=0 ; j < meetingList.length ; j++){
+			if(meetingList[j].id == id ){
 				return true;
 			}
 			else {
@@ -58,10 +76,10 @@ contract MeetingPlanner {
     }
 
 	//Delete a meeting with some id argument
-	function DeleteMeeting(uint id) {
-		for( uint j=0 ; j < Meeting_List.length ; j++){
-			if(Meeting_List[j].id == id ){
-				delete Meeting_List[j];
+	function DeleteMeeting(uint id) public {
+		for( uint j=0 ; j < meetingList.length ; j++){
+			if(meetingList[j].id == id ){
+				delete meetingList[j];
 			}
         }
     }
@@ -69,53 +87,102 @@ contract MeetingPlanner {
 
 	// set the required attribute of the meeting
     function setMeetingRequired(uint id,bool _required) public returns(bool){
-        for( uint j=0 ; j < Meeting_List.length ; j++){
-			if(Meeting_List[j].id == id ){
-				Meeting_List[j].required = _required;
-				return Meeting_List[j].required;
+        for( uint j=0 ; j < meetingList.length ; j++){
+			if(meetingList[j].id == id ){
+				meetingList[j].required = _required;
+				return meetingList[j].required;
 			}
         }
     }
     // set the manager attribute of the meeting
     function setMeetingManager(uint id,address _manager) public returns(address){
-        for( uint j=0 ; j < Meeting_List.length ; j++){
-    		if(Meeting_List[j].id == id ){
-    			Meeting_List[j].manager = _manager;
-    			return Meeting_List[j].manager;
+        for( uint j=0 ; j < meetingList.length ; j++){
+    		if(meetingList[j].id == id ){
+    			meetingList[j].manager = _manager;
+    			return meetingList[j].manager;
     		}
         }
     }
 
     //  set the description attribute of the meeting
     function setMeetingDescription(uint id,string _description) public returns(string){
-        for( uint j=0 ; j < Meeting_List.length ; j++){
-    		if(Meeting_List[j].id == id ){
-    			Meeting_List[j].description = _description;
-    			return Meeting_List[j].description;
+        for( uint j=0 ; j < meetingList.length ; j++){
+    		if(meetingList[j].id == id ){
+    			meetingList[j].description = _description;
+    			return meetingList[j].description;
     		}
         }
     }
     // set the place attribute of the meeting
     function setMeetingPlace(uint id,string _lieu) public returns(string){
-        for( uint j=0 ; j < Meeting_List.length ; j++){
-    		if(Meeting_List[j].id == id ){
-    			Meeting_List[j].lieu = _lieu;
-    			return Meeting_List[j].lieu;
+        for( uint j=0 ; j < meetingList.length ; j++){
+    		if(meetingList[j].id == id ){
+    			meetingList[j].lieu = _lieu;
+    			return meetingList[j].lieu;
     		}
         }
     }
     // set the date attribute of the meeting
     function setMeetingDate(uint id,uint _date) public returns(uint){
-        for( uint j=0 ; j < Meeting_List.length ; j++){
-    		if(Meeting_List[j].id == id ){
-    			Meeting_List[j].date = _date;
-    			return Meeting_List[j].date;
+        for( uint j=0 ; j < meetingList.length ; j++){
+    		if(meetingList[j].id == id ){
+    			meetingList[j].date = _date;
+    			return meetingList[j].date;
     		}
         }
     }
 
+    /* Methods for Invitation */
+    // add an new invitations to storage
+    function addInvitation(address organizer, address participant, uint meetingId) public {
+        invitations.push(
+            Invitation(invitations.length + 1, organizer, participant, meetingId, MeetingStatus.WAITING));
+    }
+    
+    // find an invitation by id
+    function findInvitationById(uint invitationId) public 
+            returns (uint id, address orga, address part, uint meetingId, MeetingStatus status) {
+        for (uint i = 0; i <= invitations.length; i++) {
+            if(invitations[i].id == invitationId) {
+                return (invitationId, invitations[i].organizer, invitations[i].participant,
+                        invitations[i].meetingId, invitations[i].status);
+            }
+        }
+    }
+    
+    // change invitationsStatus
+    function setInvitationStatus(uint invitationId, uint status) public {
+        for (uint i = 0; i <= invitations.length; i++) {
+            if(invitations[i].id == invitationId) {
+                invitations[i].status = MeetingStatus(status);
+            }
+        }
+    }
+    
+    // find all invitations created by an address
+    function findAllInvitationIdCreated(address organizer) constant public returns (uint[] ids){
+        uint[] memory invitationIdsOfAddress = new uint[](invitations.length);
+        uint j = 0;
+        for (uint i = 0; i <= invitations.length; i++) {
+            if(invitations[i].organizer == organizer) {
+                invitationIdsOfAddress[j] = invitations[i].id;
+                j++;
+            }
+        }
+        return (invitationIdsOfAddress);
+    }
 
-
-
-
+    // find all invitations received by an address
+    function findAllInvitationReceived(address participant) constant public returns (uint[] ids){
+        uint[] memory invitationIdsOfAddress = new uint[](invitations.length);
+        uint j = 0;
+        for (uint i = 0; i <= invitations.length; i++) {
+            if(invitations[i].participant == participant) {
+                invitationIdsOfAddress[j] = invitations[i].id;
+                j++;
+            }
+        }
+        return (invitationIdsOfAddress);
+    }
+    
 }
