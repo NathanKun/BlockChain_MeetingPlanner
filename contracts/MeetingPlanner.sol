@@ -25,7 +25,7 @@ contract MeetingPlanner {
 		address organizer;
 		address participant;
 		uint meetingId;
-		MeetingStatus status;
+		MeetingStatus meetingStatus;
 	}
 
     /* global storages */
@@ -140,23 +140,26 @@ contract MeetingPlanner {
     }
     
     // find an invitation by id
-    function findInvitationById(uint invitationId) public 
-            returns (uint id, address orga, address part, uint meetingId, MeetingStatus status) {
+    function findInvitationById(uint invitationId) constant public 
+            returns (uint id, address orga, address part, uint meetingId, MeetingStatus meetingStatus) {
         for (uint i = 0; i <= invitations.length; i++) {
             if(invitations[i].id == invitationId) {
                 return (invitationId, invitations[i].organizer, invitations[i].participant,
-                        invitations[i].meetingId, invitations[i].status);
+                        invitations[i].meetingId, invitations[i].meetingStatus);
             }
         }
+        return (0, 0x0,0x0, 0, MeetingStatus.CANCELED);
     }
     
     // change invitationsStatus
-    function setInvitationStatus(uint invitationId, uint status) public {
-        for (uint i = 0; i <= invitations.length; i++) {
+    function setInvitationStatus(uint invitationId, MeetingStatus meetingStatus) public returns (bool isFound){
+        for (uint i = 0; i < invitations.length; i++) {
             if(invitations[i].id == invitationId) {
-                invitations[i].status = MeetingStatus(status);
+                invitations[i].meetingStatus = MeetingStatus(meetingStatus);
+                return true;
             }
         }
+        return false;
     }
     
     // find all invitations created by an address
