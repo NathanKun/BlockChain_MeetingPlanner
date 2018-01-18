@@ -23,14 +23,35 @@ myApp.config(function($routeProvider) {
  */
  
 /* account service */
-myApp.servce('accountService', function () {
+myApp.service('accountService', function () {
 	var accountService = {};
 	// all available accounts
 	accounts = window.web3.eth.accounts;
 	
+	loggedInUser = undefined;
+	
+	accountService.login = function(address) {
+		if(accountService.isAddressExists(address)) {
+			loggedInUser = address;
+		} else {
+			loggedInUser = undefined;
+			return false;
+		}
+	};
+	
+	accountService.getLoggedInAddress = function() {
+		return loggedInUser;
+	}
+	
+	accountService.logout = function() {
+		loggedInUser = undefined;
+	}
+	
 	accountService.isAddressExists = function isAccountExists(address) {
 		for(i = 0; i < accounts.length; i++) {
-			if(address == accounts[i]) return true;
+			if(address == accounts[i]) {
+				return true;
+			}
 		}
 		return false;
 	};
@@ -152,10 +173,10 @@ myApp.controller('meetingIndexController', function(meetingService, $scope) {
 myApp.controller('LoginController', function(accountService, $scope, $location) {
 	$scope.title = "Welcome to the meeting planner!";
 	$scope.verifiyLogin = function() {
-		if(accountService.isAddressExists($scope.address))
+		if(accountService.login($scope.address))
 			$location.path('/MeetingIndex');
 		else
-			alert("Login incorrect.");
+			alert("Address incorrect.");
 	}
 });
 
