@@ -8,7 +8,7 @@ myApp.config(function($routeProvider) {
   $routeProvider
     .when("/", {
       templateUrl: "login.html",
-      controller: "LoginIndexController"
+      controller: "LoginController"
     })
     .when("/MeetingIndex", {
       templateUrl: "MeetingIndex.html",
