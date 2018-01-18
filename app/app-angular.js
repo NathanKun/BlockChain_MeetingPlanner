@@ -1,6 +1,9 @@
 // declare a new Angular module
 var myApp = angular.module('app', ["ngRoute"]);
 
+/*
+ * ROUTE
+ */
 myApp.config(function($routeProvider) {
   $routeProvider
     .when("/", {
@@ -13,81 +16,132 @@ myApp.config(function($routeProvider) {
     });
 });
 
-// declare angular service MeetingIndexService
-myApp.service('MeetingIndexService', function($rootScope, $http) {
+
+
+/* 
+ * SERVICES
+ */
+ 
+/* account service */
+myApp.servce('accountService', function () {
+	var accountService = {};
+	// all available accounts
+	accounts = window.web3.eth.accounts;
+	
+	accountService.isAddressExists = function isAccountExists(address) {
+		for(i = 0; i < accounts.length; i++) {
+			if(address == accounts[i]) return true;
+		}
+		return false;
+	};
+
+	return accountService;
+});
+
+/* meeting service */
+myApp.service('meetingService', function() {
 
   // empty service object
-  var meetingIndexService = {};
-  // all available accounts
-  accounts = window.web3.eth.accounts;
+  var meetingService = {};
 
   // MeetingPlanner contract
   deployedContract = MeetingPlanner.deployed();
 
   // get all available accounts
-  meetingIndexService.getAccounts = function() {
+  meetingService.getAccounts = function() {
     return accounts;
-  }
+  };
 
   // add createMeeting function to service
-  meetingIndexService.createMeeting = function(description) {
-    return deployedContract.CreateMeeting(description, true, {
-      from: accounts[0]
-    });
-  }
+  meetingService.createMeeting = function(description) {
+    return deployedContract.CreateMeeting(description, true, {from: accounts[0]});
+  };
 
   // add searchMeeting function to service
-  meetingIndexService.searchMeeting = function(id) {
-    return deployedContract.SearchMeeting.call(id, {
-      from: accounts[0]
-    });
-  }
+  meetingService.searchMeeting = function(id) {
+    return deployedContract.SearchMeeting.call(id, {from: accounts[0]});
+  };
 
   // return completed service
-  return meetingIndexService;
+  return meetingService;
 
 });
 
-myApp.service('loginIndexService', function($rootScope, $http) {
-  var LoginIndexService = {};
-	  accounts = window.web3.eth.accounts;
-		LoginIndexService.getAccounts = function() {
-			return accounts;
-		}
+/* invitation service */
+myApp.service('invitationService', ['accountService', 'meetingService', function(accountService, meetingService) {
+	
+	var invitationService = {};
+	deployedContract = MeetingPlanner.deployed();
+	
+	// local function to change invitation status
+	function setInvitationStatus(msgSender, invitationId, invStatus) {
+		if(deployedContract.setInvitationStatus.call(invitationId, invStatus, {from: msgSender})) return "ok";
+		else return "invitation id not exists";
+	};
+	
+	// call add invitation function in contract
+	invitationService.addInvitation = function(msgSender, participantAddr, meetingId) {
+		if(!accountService.isAccountExists(msgSender)) return "organizer address not exists";
+		if(!accountService.isAccountExists(participantAddr)) return "participant address not exists";
+		if(!meetingService.searchMeeting(meetingId)) return "meeting id not exists";
+		
+		deployedContract.addInvitation(participantAddr, meetingId, {from: msgSender});
+		return "ok";
+	};
+	
+	// call find invitation by id function in contract, return json with infos of invitation
+	invitationService.findInvitationById = function(msgSender, invitationId) {
+		return deployedContract.findInvitationById.call(invitationId, {from: msgSender});
+	};
+	
+	// call set invitation status function in contract
+	// enum MeetingStatus {WAITING, ACCEPTED, REFUSED, CANCELED}
+	invitationService.setInvitationStatusAccepted = function(msgSender, invitationId, invStatus) {
+		return setInvitationStatus(msgSender, invitationId, 1);
+	};
+	
+	invitationService.setInvitationStatusRefused = function(msgSender, invitationId, invStatus) {
+		return setInvitationStatus(msgSender, invitationId, 2);
+	};
+	
+	invitationService.setInvitationStatusCanceled = function(msgSender, invitationId, invStatus) {
+		return setInvitationStatus(msgSender, invitationId, 3);
+	};
+	
+	// call find all invitation id created function in contract, return json array
+	invitationService.findAllInvitationIdCreated = function(msgSender) {
+		return deployedContract.findAllInvitationIdCreated({from: msgSender});
+	};
+	
+	// call find all invitation id received function in contract, return json array
+	invitationService.findAllInvitationReceived = function(msgSender) {
+		return deployedContract.findAllInvitationReceived({from: msgSender});
+	};
+	
+	return invitationService;
+}]);
 
-		return LoginIndexService;
-});
+
+
+/*
+ * CONTROLLERS
+ */
 
 // controller for MeetingIndex page
-myApp.controller('meetingIndexController', function(MeetingIndexService, $scope, $rootScope) {
+myApp.controller('meetingIndexController', function(meetingService, $scope) {
 
   // create meeting function for button 'Create'
   $scope.createMeeting = function() {
-    // call createContract() in MeetingIndexService service and pass 'description' from page to it
-    MeetingIndexService.createMeeting($scope.description);
+    // call createContract() in MeetingService service and pass 'description' from page to it
+    meetingService.createMeeting($scope.description);
     console.log($scope.description);
   }
 
   $scope.searchMeeting = function() {
-    MeetingIndexService.searchMeeting(1).then(function(value) {
+    meetingService.searchMeeting(1).then(function(value) {
       console.log(value);
     });
-    MeetingIndexService.searchMeeting(2).then(function(value) {
-      console.log(value);
-    });
-    MeetingIndexService.searchMeeting(3).then(function(value) {
-      console.log(value);
-    });
-    MeetingIndexService.searchMeeting(4).then(function(value) {
-      console.log(value);
-    });
-    MeetingIndexService.searchMeeting(5).then(function(value) {
-      console.log(value);
-    });
-    MeetingIndexService.searchMeeting(6).then(function(value) {
-      console.log(value);
-    });
-    MeetingIndexService.searchMeeting(7).then(function(value) {
+    meetingService.searchMeeting(2).then(function(value) {
       console.log(value);
     });
   }
@@ -95,21 +149,14 @@ myApp.controller('meetingIndexController', function(MeetingIndexService, $scope,
 });
 
 
-myApp.controller('LoginIndexController', function(loginIndexService, $scope, $location) {
-  $scope.title = "Welcome to the meeting planner!";
-  $scope.verifiyLogin = function() {
-	console.log($scope.address);
-		var accountsHere = loginIndexService.getAccounts();
-		var isCorrect = 0;
-		for(i = 0; i<=accountsHere.length; i++){
-			if($scope.address == accountsHere[i]){
-				$location.path('/MeetingIndex');
-				isCorrect = 1;
-			}
-			console.log(accountsHere[i]);
-		}
-		if(isCorrect == 0){
-		alert("Login incorrect.");
+myApp.controller('LoginController', function(accountService, $scope, $location) {
+	$scope.title = "Welcome to the meeting planner!";
+	$scope.verifiyLogin = function() {
+		if(accountService.isAddressExists($scope.address))
+			$location.path('/MeetingIndex');
+		else
+			alert("Login incorrect.");
 	}
-  }
 });
+
+
