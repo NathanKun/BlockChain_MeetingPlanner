@@ -13,6 +13,10 @@ myApp.config(function($routeProvider) {
     .when("/MeetingIndex", {
       templateUrl: "MeetingIndex.html",
       controller: "meetingIndexController"
+    })
+    .when("/Invitation", {
+      templateUrl: "Invitation.html",
+      controller: "invitationController"
     });
 });
 
@@ -33,6 +37,7 @@ myApp.service('accountService', function () {
 	accountService.login = function(address) {
 		if(accountService.isAddressExists(address)) {
 			loggedInUser = address;
+			return true;
 		} else {
 			loggedInUser = undefined;
 			return false;
@@ -50,6 +55,7 @@ myApp.service('accountService', function () {
 	accountService.isAddressExists = function isAccountExists(address) {
 		for(i = 0; i < accounts.length; i++) {
 			if(address == accounts[i]) {
+				console.log("found");
 				return true;
 			}
 		}
@@ -171,6 +177,17 @@ myApp.controller('meetingIndexController', function(meetingService, $scope) {
 
 
 myApp.controller('LoginController', function(accountService, $scope, $location) {
+	$scope.title = "Welcome to the meeting planner!";
+	$scope.verifiyLogin = function() {
+		if(accountService.login($scope.address))
+			$location.path('/MeetingIndex');
+		else
+			alert("Address incorrect.");
+	}
+});
+
+
+myApp.controller('invitationController', function(accountService, $scope, $location) {
 	$scope.title = "Welcome to the meeting planner!";
 	$scope.verifiyLogin = function() {
 		if(accountService.login($scope.address))
