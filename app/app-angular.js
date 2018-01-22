@@ -30,20 +30,26 @@ myApp.service('MeetingIndexService', function($rootScope, $http) {
   }
 
   // add createMeeting function to service
-  meetingIndexService.createMeeting = function(description) {
-    return deployedContract.CreateMeeting(description, true, {
+  meetingIndexService.createMeeting = function(description, required, lieu, date) {
+    return deployedContract.CreateMeeting(description, required, lieu, date, true, {
       from: accounts[0]
     });
   }
 
-  // add searchMeeting function to service
+  //add searchMeeting function to service
   meetingIndexService.searchMeeting = function(id) {
     return deployedContract.SearchMeeting.call(id, {
       from: accounts[0]
     });
   }
+  //get the meeting list
+    meetingIndexService.getMeetingList = function() {
+      return deployedContract.GetMeetingList.call( {
+        from: accounts[0]
+      });
+    }
 
-  // return completed service
+  //return completed service
   return meetingIndexService;
 
 });
@@ -58,38 +64,36 @@ myApp.service('loginIndexService', function($rootScope, $http) {
 		return LoginIndexService;
 });
 
-// controller for MeetingIndex page
-myApp.controller('meetingIndexController', function(MeetingIndexService, $scope, $rootScope) {
+//controller for MeetingIndex page
+myApp.controller('meetingIndexController', function(MeetingIndexService, $scope, $rootScope,$location) {
 
-  // create meeting function for button 'Create'
+  //create meeting function for button 'Create'
   $scope.createMeeting = function() {
-    // call createContract() in MeetingIndexService service and pass 'description' from page to it
-    MeetingIndexService.createMeeting($scope.description);
+    //call createContract() in MeetingIndexService service and pass 'description' from page to it
+    MeetingIndexService.createMeeting($scope.description, $scope.required, $scope.lieu, $scope.date);
     console.log($scope.description);
   }
+  // Button search meeting
+  $scope.goToSearchMeeting = function(){
+    $location.path('/SearchMeeting');
+			console.log("Search");
+  }
+  //get the meeting list
+  $scope.getMeetingList = function(){
+    MeetingIndexService.getMeetingList().then(function(value) {
+      console.log(value);
+  });
+  }
 
-  $scope.searchMeeting = function() {
-    MeetingIndexService.searchMeeting(1).then(function(value) {
+  // Search meeting
+   $scope.searchMeeting = function() {
+     MeetingIndexService.searchMeeting($scope.id).then(function(value) {
+       $scope.meetingFound == value ;
       console.log(value);
-    });
-    MeetingIndexService.searchMeeting(2).then(function(value) {
-      console.log(value);
-    });
-    MeetingIndexService.searchMeeting(3).then(function(value) {
-      console.log(value);
-    });
-    MeetingIndexService.searchMeeting(4).then(function(value) {
-      console.log(value);
-    });
-    MeetingIndexService.searchMeeting(5).then(function(value) {
-      console.log(value);
-    });
-    MeetingIndexService.searchMeeting(6).then(function(value) {
-      console.log(value);
-    });
-    MeetingIndexService.searchMeeting(7).then(function(value) {
-      console.log(value);
-    });
+
+       //console.log($scope.meetingFound);
+
+   });
   }
 
 });
@@ -97,6 +101,8 @@ myApp.controller('meetingIndexController', function(MeetingIndexService, $scope,
 
 myApp.controller('LoginIndexController', function(loginIndexService, $scope, $location) {
   $scope.title = "Welcome to the meeting planner!";
+
+
   $scope.verifiyLogin = function() {
 	console.log($scope.address);
 		var accountsHere = loginIndexService.getAccounts();
