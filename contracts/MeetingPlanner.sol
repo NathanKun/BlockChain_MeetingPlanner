@@ -157,9 +157,9 @@ contract MeetingPlanner {
 
     /* Methods for Invitation */
     // add an new invitations to storage
-    function addInvitation(address organizer, address participant, uint meetingId) public {
+    function addInvitation(address participant, uint meetingId) public {
         invitations.push(
-            Invitation(invitations.length + 1, organizer, participant, meetingId, MeetingStatus.WAITING));
+            Invitation(invitations.length + 1, msg.sender, participant, meetingId, MeetingStatus.WAITING));
     }
 
     //find an invitation by id
@@ -185,12 +185,12 @@ contract MeetingPlanner {
         return false;
     }
 
-    //find all invitations created by an address
-    function findAllInvitationIdCreated(address organizer) constant public returns (uint[] ids){
+    // find all invitations created by an address
+    function findAllInvitationIdCreated() constant public returns (uint[] ids){
         uint[] memory invitationIdsOfAddress = new uint[](invitations.length);
         uint j = 0;
         for (uint i = 0; i <= invitations.length; i++) {
-            if(invitations[i].organizer == organizer) {
+            if(invitations[i].organizer == msg.sender) {
                 invitationIdsOfAddress[j] = invitations[i].id;
                 j++;
             }
@@ -198,12 +198,12 @@ contract MeetingPlanner {
         return (invitationIdsOfAddress);
     }
 
-    //find all invitations received by an address
-    function findAllInvitationReceived(address participant) constant public returns (uint[] ids){
+    // find all invitations received by an address
+    function findAllInvitationReceived() constant public returns (uint[] ids){
         uint[] memory invitationIdsOfAddress = new uint[](invitations.length);
         uint j = 0;
         for (uint i = 0; i <= invitations.length; i++) {
-            if(invitations[i].participant == participant) {
+            if(invitations[i].participant == msg.sender) {
                 invitationIdsOfAddress[j] = invitations[i].id;
                 j++;
             }
