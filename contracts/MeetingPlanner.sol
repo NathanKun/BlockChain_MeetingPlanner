@@ -1,9 +1,9 @@
-pragma solidity ^0.4.8;
+pragma solidity ^0.4.2;
 
 contract MeetingPlanner {
 	
 	/* enums */
-	enum MeetingStatus {WAITING, ACCEPTED, REFUSED, CANCELED}
+	enum InvitationStatus {WAITING, ACCEPTED, REFUSED, CANCELED}
 
     /* structures */
 	struct User{
@@ -25,7 +25,7 @@ contract MeetingPlanner {
 		address organizer;
 		address participant;
 		uint meetingId;
-		MeetingStatus meetingStatus;
+		InvitationStatus invitationStatus;
 	}
 
     /* global storages */
@@ -36,20 +36,38 @@ contract MeetingPlanner {
     /* constructor of contract */
 	function MeetingPlanner() public {
 	    // seed of user
-        userList[0x4dB2Da7660a1E2eDc15CAcD815c39D0574103Cb3] = 
+        userList[0x4db2da7660a1e2edc15cacd815c39d0574103cb3] = 
             User("Junyang", "junyang.he@groupe-esigelec.org");
-        userList[0x013BA5D38F3A03C63909d48be7A81Df2B60A61F4] = 
+        userList[0x013ba5d38f3a03c63909d48be7a81df2b60a61f4] = 
             User("Yuzhou", "yuzhou.song@groupe-esigelec.org");
-        userList[0xfAc6Be69d005cAA557B2e36c6FB41959188C438c] = 
+        userList[0xfac6be69d005caa557b2e36c6fb41959188c438c] = 
             User("Charaf", "c.i@groupe-esigelec.org");
-        userList[0x465CaA1267d97eC054635704Ed68102970CB6Adc] = 
+        userList[0x465caa1267d97ec054635704ed68102970cb6adc] = 
             User("José", "j.d@groupe-esigelec.org");
-        userList[0xeA8328FcA972E48D9beC1039400be99D4cE760BE] = 
+        userList[0xea8328fca972e48d9bec1039400be99d4ce760be] = 
             User("Gael", "g.o@groupe-esigelec.org");
+		
+		// seed of meeting
+		meetingList.push(Meeting({id: 1, manager: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
+			description: "meeting 1", required: true , lieu: 'rue m1', date: 1}));
+		meetingList.push(Meeting({id: 2, manager: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
+			description: "meeting 1", required: true , lieu: 'rue m1', date: 2}));
+		meetingList.push(Meeting({id: 3, manager: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
+			description: "meeting 1", required: true , lieu: 'rue m1', date: 3}));
+		// seed of invitation
+        invitations.push(
+            Invitation({id: 1, organizer: 0x465caa1267d97ec054635704ed68102970cb6adc, 
+			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 1, invitationStatus: InvitationStatus.WAITING}));
+        invitations.push(
+            Invitation({id: 2, organizer: 0x465caa1267d97ec054635704ed68102970cb6adc, 
+			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 2, invitationStatus: InvitationStatus.WAITING}));
+        invitations.push(
+            Invitation({id: 3, organizer: 0x465caa1267d97ec054635704ed68102970cb6adc, 
+			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 3, invitationStatus: InvitationStatus.WAITING}));
 	}
 
     /* Methods for Meeting */
-	// Create a meeting with a description argument
+	// Create a meeting with a description argument/*
     function CreateMeeting(string _description, bool _required) public {
 
 		meetingList.push(Meeting({
@@ -131,31 +149,35 @@ contract MeetingPlanner {
     		}
         }
     }
+	
+	function findMeetingById(uint id) public constant returns() {
+		
+	}
 
     /* Methods for Invitation */
     // add an new invitations to storage
     function addInvitation(address participant, uint meetingId) public {
         invitations.push(
-            Invitation(invitations.length + 1, msg.sender, participant, meetingId, MeetingStatus.WAITING));
+            Invitation(invitations.length + 1, msg.sender, participant, meetingId, InvitationStatus.WAITING));
     }
     
     // find an invitation by id
     function findInvitationById(uint invitationId) constant public 
-            returns (uint id, address orga, address part, uint meetingId, MeetingStatus meetingStatus) {
-        for (uint i = 0; i <= invitations.length; i++) {
+            returns (uint id, address orga, address part, uint meetingId, InvitationStatus invitationStatus) {
+        for (uint i = 0; i < invitations.length; i++) {
             if(invitations[i].id == invitationId) {
                 return (invitationId, invitations[i].organizer, invitations[i].participant,
-                        invitations[i].meetingId, invitations[i].meetingStatus);
+                        invitations[i].meetingId, invitations[i].invitationStatus);
             }
         }
-        return (0, 0x0,0x0, 0, MeetingStatus.CANCELED);
+        return (0, 0x0,0x0, 0, InvitationStatus.CANCELED);
     }
     
     // change invitationsStatus
-    function setInvitationStatus(uint invitationId, MeetingStatus meetingStatus) public returns (bool isFound){
+    function setInvitationStatus(uint invitationId, InvitationStatus invitationStatus) public returns (bool isFound){
         for (uint i = 0; i < invitations.length; i++) {
             if(invitations[i].id == invitationId) {
-                invitations[i].meetingStatus = MeetingStatus(meetingStatus);
+                invitations[i].invitationStatus = InvitationStatus(invitationStatus);
                 return true;
             }
         }
@@ -163,11 +185,11 @@ contract MeetingPlanner {
     }
     
     // find all invitations created by an address
-    function findAllInvitationIdCreated() constant public returns (uint[] ids){
-        uint[] memory invitationIdsOfAddress = new uint[](invitations.length);
+    function findAllInvitationIdCreated(address orga) constant public returns (uint[20] ids){
+        uint[20] memory invitationIdsOfAddress;
         uint j = 0;
-        for (uint i = 0; i <= invitations.length; i++) {
-            if(invitations[i].organizer == msg.sender) {
+        for (uint i = 0; i < invitations.length; i++) {
+            if(invitations[i].organizer == orga) {
                 invitationIdsOfAddress[j] = invitations[i].id;
                 j++;
             }
@@ -176,16 +198,16 @@ contract MeetingPlanner {
     }
 
     // find all invitations received by an address
-    function findAllInvitationReceived() constant public returns (uint[] ids){
-        uint[] memory invitationIdsOfAddress = new uint[](invitations.length);
+    function findAllInvitationIdReceived(address part) constant public returns (uint[20] ids){
+        uint[20] memory invitationIdsOfAddress;
         uint j = 0;
-        for (uint i = 0; i <= invitations.length; i++) {
-            if(invitations[i].participant == msg.sender) {
+        for (uint i = 0; i < invitations.length; i++) {
+            if(invitations[i].participant == part) {
                 invitationIdsOfAddress[j] = invitations[i].id;
                 j++;
             }
         }
-        return (invitationIdsOfAddress);
+        return invitationIdsOfAddress;
     }
     
 }

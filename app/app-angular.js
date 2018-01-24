@@ -17,6 +17,10 @@ myApp.config(function($routeProvider) {
     .when("/Invitation", {
       templateUrl: "Invitation.html",
       controller: "invitationController"
+    })
+    .when("/myinvitations", {
+      templateUrl: "myinvitations.html",
+      controller: "myInvitationsController"
     });
 });
 
@@ -32,21 +36,19 @@ myApp.service('accountService', function () {
 	// all available accounts
 	accounts = window.web3.eth.accounts;
 	
-	loggedInUser = undefined;
+	accountService.loggedInUser = undefined;
+	
+	accountService.getLoggedInAddress = function() {return this.loggedInUser;};
 	
 	accountService.login = function(address) {
 		if(accountService.isAddressExists(address)) {
-			loggedInUser = address;
+			accountService.loggedInUser = address;
 			return true;
 		} else {
 			loggedInUser = undefined;
 			return false;
 		}
 	};
-	
-	accountService.getLoggedInAddress = function() {
-		return loggedInUser;
-	}
 	
 	accountService.logout = function() {
 		loggedInUser = undefined;
@@ -55,7 +57,6 @@ myApp.service('accountService', function () {
 	accountService.isAddressExists = function isAccountExists(address) {
 		for(i = 0; i < accounts.length; i++) {
 			if(address == accounts[i]) {
-				console.log("found");
 				return true;
 			}
 		}
@@ -68,29 +69,30 @@ myApp.service('accountService', function () {
 /* meeting service */
 myApp.service('meetingService', function() {
 
-  // empty service object
-  var meetingService = {};
+	// empty service object
+	var meetingService = {};
 
-  // MeetingPlanner contract
-  deployedContract = MeetingPlanner.deployed();
+	// MeetingPlanner contract
+	deployedContract = MeetingPlanner.deployed();
 
-  // get all available accounts
-  meetingService.getAccounts = function() {
-    return accounts;
-  };
+	// add createMeeting function to service
+	meetingService.createMeeting = function(description) {
+	return deployedContract.CreateMeeting(description, true, {from: accounts[0]});
+	};
 
-  // add createMeeting function to service
-  meetingService.createMeeting = function(description) {
-    return deployedContract.CreateMeeting(description, true, {from: accounts[0]});
-  };
+	// add searchMeeting function to service
+	meetingService.searchMeeting = function(id) {
+	return deployedContract.SearchMeeting.call(id, {from: accounts[0]});
+	};
 
-  // add searchMeeting function to service
-  meetingService.searchMeeting = function(id) {
-    return deployedContract.SearchMeeting.call(id, {from: accounts[0]});
-  };
+	meetingService.findMeetingById = function(meetingId) {
+		return deployedContract.findMeetingById.call(meetingId).then(function(mt) {
+			return {};
+		});
+	}
 
-  // return completed service
-  return meetingService;
+	// return completed service
+	return meetingService;
 
 });
 
@@ -102,8 +104,11 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
 	
 	// local function to change invitation status
 	function setInvitationStatus(msgSender, invitationId, invStatus) {
-		if(deployedContract.setInvitationStatus.call(invitationId, invStatus, {from: msgSender})) return "ok";
-		else return "invitation id not exists";
+		return deployedContract.setInvitationStatus.call(invitationId, invStatus, {from: msgSender}).then(
+			function(value) 
+				if(value) return "ok";
+				else return "invitation id not exists";
+		));
 	};
 	
 	// call add invitation function in contract
@@ -117,8 +122,11 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
 	};
 	
 	// call find invitation by id function in contract, return json with infos of invitation
-	invitationService.findInvitationById = function(msgSender, invitationId) {
-		return deployedContract.findInvitationById.call(invitationId, {from: msgSender});
+	invitationService.findInvitationById = function(invitationId) {
+		return deployedContract.findInvitationById.call(invitationId).then(function(inv) {
+			return {"id": inv[0].toNumber(), "organizer": inv[1], "participant": inv[2], "meetingId": inv[3].toNumber(),
+					"statusNumber": inv[4].toNumber(), "statusString": invitationStatusNumberToString(inv[5].toNumber())};
+		});
 	};
 	
 	// call set invitation status function in contract
@@ -136,14 +144,71 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
 	};
 	
 	// call find all invitation id created function in contract, return json array
-	invitationService.findAllInvitationIdCreated = function(msgSender) {
-		return deployedContract.findAllInvitationIdCreated({from: msgSender});
+	invitationService.findAllInvitationIdCreated = function() {
+		return deployedContract.findAllInvitationIdCreated(accountService.loggedInUser);
 	};
 	
 	// call find all invitation id received function in contract, return json array
-	invitationService.findAllInvitationReceived = function(msgSender) {
-		return deployedContract.findAllInvitationReceived({from: msgSender});
+	invitationService.findAllInvitationReceived = function() {
+		// find all invitations' id
+		deployedContract.findAllInvitationIdReceived.call(accountService.loggedInUser).then(function(values) {
+			var promises = [];
+			for(var i = 0; i < values.length; i++) {
+				var id = values[i].toNumber();
+				if(id != 0)
+					// find all invitations by invitationId in idList
+					var invitation = deployedContract.findInvitationById(id);
+					// find meeting by meetingId found in invitation
+					var meeting =  meetingService.findMeetingById(invitation.meetingId);
+					
+					invStatus = invitation.statusNumber;
+					isAccepted = 0;
+					isRefused = 0;
+					
+					switch(invStatus) {
+						case 0:
+							break;
+						case 1:
+							isAccepted = 1;
+							break;
+						case 2:
+							isAccepted = 0;
+							break;
+						default:
+						break;
+					}
+					
+					return [
+							"id": invitation.id,
+							"description": meeting.description, 
+							"date": meeting.date,
+							"place": meeting.place,
+							"status": meeting.meetingStatus,
+							"organizer": invitation[1],
+							"isAccepted": isAccepted,
+							"isRefused", isRefused
+						];
+			}
+			
+			return Promise.all(promises).then(function(values) {
+				//console.log(values);
+				return values;
+			});
+		});
 	};
+	
+	function invitationStatusNumberToString(number) {
+		return ["WAITING", "ACCEPTED", "REFUSED", "CANCELED"][number]
+	}
+	function invitationStatusStringToNumber(string) {
+		switch(string) {
+			case "WAITING": return 0; 
+			case "ACCEPTED": return 1; 
+			case "REFUSED": return 2; 
+			case "CANCELED": return 3;
+			default: return "Status not exists";
+		}
+	}
 	
 	return invitationService;
 }]);
@@ -195,6 +260,19 @@ myApp.controller('invitationController', function(accountService, $scope, $locat
 		else
 			alert("Address incorrect.");
 	}
+});
+
+
+myApp.controller('myInvitationsController', function(accountService, invitationService, $scope, $location) {
+	$scope.invitations = invitationService.findAllInvitationReceived();
+	
+	$scope.acceptInvitation = function(invId) {
+		console.log("accept " + invId);
+	};
+	
+	$scope.refuseInvitation = function(invId) {
+		console.log("refuse " + invId);
+	};
 });
 
 
