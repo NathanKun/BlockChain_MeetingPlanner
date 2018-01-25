@@ -26,10 +26,10 @@ myApp.config(function($routeProvider) {
 
 
 
-/* 
+/*
  * SERVICES
  */
- 
+
 /* account service */
 myApp.service('accountService', function () {
 	var accountService = {};
@@ -53,7 +53,7 @@ myApp.service('accountService', function () {
 	accountService.logout = function() {
 		loggedInUser = undefined;
 	}
-	
+
 	accountService.isAddressExists = function isAccountExists(address) {
 		for(i = 0; i < accounts.length; i++) {
 			if(address == accounts[i]) {
@@ -75,11 +75,6 @@ myApp.service('meetingService', function() {
 	// MeetingPlanner contract
 	deployedContract = MeetingPlanner.deployed();
 
-	// add createMeeting function to service
-	meetingService.createMeeting = function(description) {
-	return deployedContract.CreateMeeting(description, true, {from: accounts[0]});
-	};
-
 	// add searchMeeting function to service
 	meetingService.searchMeeting = function(id) {
 	return deployedContract.SearchMeeting.call(id, {from: accounts[0]});
@@ -87,119 +82,140 @@ myApp.service('meetingService', function() {
 
 	meetingService.findMeetingById = function(meetingId) {
 		return deployedContract.findMeetingById.call(meetingId).then(function(mt) {
-			return {};
+			// uint id, bool required, address manager, string description, string lieu, uint date, Status status
+			return {"id" : mt[0].toNumber(), "required" : mt[1], "organizer" : mt[2], "description" : mt[3], 
+				"place" : mt[4], "date" : mt[5].toNumber(), "statusNumber" : mt[6].toNumber(), "statusString" : mt[6].toNumber()};
 		});
 	}
 
+	// add createMeeting function to service
+	meetingService.createMeeting = function(description, required, lieu, date) {
+		return deployedContract.CreateMeeting(description, required, lieu, date, true, {from: accounts[0]});
+	};
+	
+	//get the meeting list
+	meetingService.getMeetingList = function() {
+		return deployedContract.GetMeetingList.call( {from: accounts[0]});
+	};
+
 	// return completed service
 	return meetingService;
-
 });
 
 /* invitation service */
 myApp.service('invitationService', ['accountService', 'meetingService', function(accountService, meetingService) {
-	
+
 	var invitationService = {};
 	deployedContract = MeetingPlanner.deployed();
-	
+
 	// local function to change invitation status
 	function setInvitationStatus(msgSender, invitationId, invStatus) {
 		return deployedContract.setInvitationStatus.call(invitationId, invStatus, {from: msgSender}).then(
-			function(value) 
+			function(value) {
 				if(value) return "ok";
 				else return "invitation id not exists";
-		));
+			}
+		);
 	};
-	
+
 	// call add invitation function in contract
 	invitationService.addInvitation = function(msgSender, participantAddr, meetingId) {
 		if(!accountService.isAccountExists(msgSender)) return "organizer address not exists";
 		if(!accountService.isAccountExists(participantAddr)) return "participant address not exists";
 		if(!meetingService.searchMeeting(meetingId)) return "meeting id not exists";
-		
+
 		deployedContract.addInvitation(participantAddr, meetingId, {from: msgSender});
 		return "ok";
 	};
-	
+
 	// call find invitation by id function in contract, return json with infos of invitation
 	invitationService.findInvitationById = function(invitationId) {
 		return deployedContract.findInvitationById.call(invitationId).then(function(inv) {
-			return {"id": inv[0].toNumber(), "organizer": inv[1], "participant": inv[2], "meetingId": inv[3].toNumber(),
-					"statusNumber": inv[4].toNumber(), "statusString": invitationStatusNumberToString(inv[5].toNumber())};
+			return {"id" : inv[0].toNumber(), "organizer" : inv[1], "participant" : inv[2], "meetingId" : inv[3].toNumber(),
+					"statusNumber" : inv[4].toNumber(), "statusString" : invitationStatusNumberToString(inv[4].toNumber())};
 		});
 	};
-	
+
 	// call set invitation status function in contract
 	// enum MeetingStatus {WAITING, ACCEPTED, REFUSED, CANCELED}
 	invitationService.setInvitationStatusAccepted = function(msgSender, invitationId, invStatus) {
 		return setInvitationStatus(msgSender, invitationId, 1);
 	};
-	
+
 	invitationService.setInvitationStatusRefused = function(msgSender, invitationId, invStatus) {
 		return setInvitationStatus(msgSender, invitationId, 2);
 	};
-	
+
 	invitationService.setInvitationStatusCanceled = function(msgSender, invitationId, invStatus) {
 		return setInvitationStatus(msgSender, invitationId, 3);
 	};
-	
+
 	// call find all invitation id created function in contract, return json array
 	invitationService.findAllInvitationIdCreated = function() {
 		return deployedContract.findAllInvitationIdCreated(accountService.loggedInUser);
 	};
-	
+
 	// call find all invitation id received function in contract, return json array
 	invitationService.findAllInvitationReceived = function() {
 		// find all invitations' id
+console.log("in function");
 		deployedContract.findAllInvitationIdReceived.call(accountService.loggedInUser).then(function(values) {
 			var promises = [];
 			for(var i = 0; i < values.length; i++) {
 				var id = values[i].toNumber();
-				if(id != 0)
+				if(id != 0) {
+					//console.log(id);
 					// find all invitations by invitationId in idList
-					var invitation = deployedContract.findInvitationById(id);
-					// find meeting by meetingId found in invitation
-					var meeting =  meetingService.findMeetingById(invitation.meetingId);
-					
-					invStatus = invitation.statusNumber;
-					isAccepted = 0;
-					isRefused = 0;
-					
-					switch(invStatus) {
-						case 0:
-							break;
-						case 1:
-							isAccepted = 1;
-							break;
-						case 2:
+					var prom = invitationService.findInvitationById(id).then(function(invitation){
+						// find meeting by meetingId found in invitation
+						return meetingService.findMeetingById(invitation.meetingId).then(function(meeting) {
+							//console.log(invitation);
+							//console.log(meeting);
+							invStatus = invitation.statusNumber;
 							isAccepted = 0;
-							break;
-						default:
-						break;
-					}
+							isRefused = 0;
+							
+							switch(invStatus) {
+								case 0:
+									break;
+								case 1:
+									isAccepted = 1;
+									break;
+								case 2:
+									isAccepted = 0;
+									break;
+								default:
+								break;
+							}
+							
+							return {
+									"id" : invitation.id,
+									"description" : meeting.description, 
+									"date" : meeting.date,
+									"place" : meeting.place,
+									"status" : meeting.meetingStatus,
+									"organizer" : invitation[1],
+									"isAccepted" : isAccepted,
+									"isRefused" : isRefused
+								};
+						});
+					});
+					promises.push(prom);
+				}
 					
-					return [
-							"id": invitation.id,
-							"description": meeting.description, 
-							"date": meeting.date,
-							"place": meeting.place,
-							"status": meeting.meetingStatus,
-							"organizer": invitation[1],
-							"isAccepted": isAccepted,
-							"isRefused", isRefused
-						];
 			}
 			
 			return Promise.all(promises).then(function(values) {
-				//console.log(values);
+				console.log(values);
 				return values;
 			});
 		});
 	};
 	
 	function invitationStatusNumberToString(number) {
-		return ["WAITING", "ACCEPTED", "REFUSED", "CANCELED"][number]
+		return ["WAITING" , "ACCEPTED", "REFUSED", "CANCELED"][number]
 	}
+	
 	function invitationStatusStringToNumber(string) {
 		switch(string) {
 			case "WAITING": return 0; 
@@ -219,23 +235,36 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
  * CONTROLLERS
  */
 
-// controller for MeetingIndex page
-myApp.controller('meetingIndexController', function(meetingService, $scope) {
+//controller for MeetingIndex page
+myApp.controller('meetingIndexController', function(meetingService, $scope, $rootScope,$location) {
 
-  // create meeting function for button 'Create'
+  //create meeting function for button 'Create'
   $scope.createMeeting = function() {
-    // call createContract() in MeetingService service and pass 'description' from page to it
-    meetingService.createMeeting($scope.description);
+    //call createContract() in meetingService service and pass 'description' from page to it
+    meetingService.createMeeting($scope.description, $scope.required, $scope.lieu, $scope.date);
     console.log($scope.description);
   }
+  // Button search meeting
+  $scope.goToSearchMeeting = function(){
+    $location.path('/SearchMeeting');
+			console.log("Search");
+  }
+  //get the meeting list
+  $scope.getMeetingList = function(){
+    meetingService.getMeetingList().then(function(value) {
+      console.log(value);
+  });
+  }
 
-  $scope.searchMeeting = function() {
-    meetingService.searchMeeting(1).then(function(value) {
+  // Search meeting
+   $scope.searchMeeting = function() {
+     meetingService.searchMeeting($scope.id).then(function(value) {
+       $scope.meetingFound == value ;
       console.log(value);
-    });
-    meetingService.searchMeeting(2).then(function(value) {
-      console.log(value);
-    });
+
+       //console.log($scope.meetingFound);
+
+   });
   }
 
 });
