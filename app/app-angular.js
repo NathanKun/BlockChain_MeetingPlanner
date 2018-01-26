@@ -10,6 +10,10 @@ myApp.config(function($routeProvider, $locationProvider) {
       templateUrl: "login.html",
       controller: "LoginController"
     })
+    .when("/mainpage", {
+      templateUrl: "mainPage.html",
+      controller: "mainPageController"
+    })
     .when("/MeetingIndex", {
       templateUrl: "MeetingIndex.html",
       controller: "meetingIndexController"
@@ -35,6 +39,9 @@ myApp.config(function($routeProvider, $locationProvider) {
 /* account service */
 myApp.service('accountService', function () {
 	var accountService = {};
+	
+	deployedContract = MeetingPlanner.deployed();
+	
 	// all available accounts
 	accounts = window.web3.eth.accounts;
 
@@ -318,7 +325,7 @@ myApp.controller('LoginController', function(accountService, $scope, $location) 
 	$scope.title = "Welcome to the meeting planner!";
 	$scope.verifiyLogin = function() {
 		if(accountService.login($scope.address))
-			$location.path('/MeetingIndex');
+			$location.path('/mainpage');
 		else
 			alert("Address incorrect.");
 	}
@@ -370,4 +377,18 @@ myApp.controller('myInvitationsController', function(accountService, invitationS
 			}
 		});
 	};
+	
+	$scope.returnToIndex = function() { $location.path("/mainpage"); };
 });
+
+myApp.controller('mainPageController', function(accountService, $location, $scope) {
+	accountService.findUserByAddress(accountService.loggedInUser).then(function(user){
+		console.log(user);
+		$scope.name = user.name;
+		$scope.$apply();
+	});
+	
+	$scope.createMeeting = function() { $location.path('/MeetingIndex'); }
+	$scope.listMeeting = function() { $location.path('/ListMeeting'); }
+	$scope.myInvitations = function() { $location.path('/myinvitations'); };
+} );

@@ -78,3 +78,65 @@ h1{
 	background: #ffc107;
 	color: #000;
 }
+
+.inline-buttons .one-third {
+    text-align: center;
+}
+
+@media only screen and (max-width: 1076px) {
+
+    .inline-buttons .one-third {
+        width: 100%;
+        margin: 20px;
+    }
+    
+}
+
+.button {
+    background-color: transparent;
+    text-align: center;
+    display: inline-block;
+    text-decoration: none;
+    border: 1px solid;
+    -webkit-transition: all 0.2s ease-in;
+    -moz-transition: all 0.2s ease-in;
+    -o-transition: all 0.2s ease-in;
+    transition: all 0.2s ease-in;
+    padding: 10px 30px 8px;
+    font-size: 16px;
+    font-family: "proxima-nova", sans-serif;
+    font-weight: 300;
+    letter-spacing: 0.2rem;
+    line-height: 1;
+    text-transform: uppercase;
+	align : center;
+}
+.button:hover{
+    text-decoration: none;
+    cursor: pointer;
+    color: #000;
+}
+
+.button-neutral{
+	margin-top: 80px;
+    color: #000;
+    border-color: #000;
+}
+.button-neutral:hover{
+    color: #fff;
+    background-color: #000;
+}
+
+.button-primary{
+    color: #23849b;
+    border-color: #23849b;
+}
+.button-primary:hover{
+    color: #fff;
+    background-color: #23849b;
+}
+div.container{
+	
+	text-align: center;
+}
+

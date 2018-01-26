@@ -5,6 +5,7 @@ module.exports = {
     "MeetingIndex.html": "MeetingIndex.html",
 	"Invitation.html": "Invitation.html",
 	"myinvitations.html": "myinvitations.html",
+	"mainPage.html": "mainPage.html",
     "app-angular.js": "app-angular.js",
     "app.js": [
       "truffle/app.js"
