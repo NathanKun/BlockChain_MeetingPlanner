@@ -1,0 +1,20 @@
+<div ng-controller="mainPageController">
+	<div id="username-content" >
+		<p style="text-align:center;"><img SRC="assets/welcome.png" ></p>
+		<h1> Welcome {{ name }} </h1>		
+	</div>
+	<div class="container">
+		<div class="row">
+		<div class="col-md-12 col-lg-4">
+			<button class="button button-neutral" ng-click="createMeeting()">Create Meeting</button>
+		</div>
+		<div class="col-md-12 col-lg-4">
+			<button class="button button-neutral" ng-click="listMeeting()">lister mes meeting</button>
+		</div>
+		<div class="col-md-12 col-lg-4">
+			<button class="button button-neutral" ng-click="myInvitations()">Voir mes invitations</button>
+		</div>
+		</div>
+	</div>
+</div>
+
