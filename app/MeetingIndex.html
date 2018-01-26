@@ -1,31 +1,24 @@
 <div id="meeting-content">
+	<button id="btn" ng-click="goToMeetingCreated()">Mes réunions </button>
+
 	<div class="meetingbox" ng-controller="meetingIndexController">
 		<img src="assets/avatar.png" class="avatar">
+		<!-- <h1>WELCOME {{titre}}</h1> -->
 		<h1> Créer un rendez-vous</h1>
 		<form>
 			<p>Objet</p>
-			<input type="text" ng-model="description" placeholder="Saisir la description">
-			<input type="text" ng-model="required" placeholder="Required">
-			<input type="text" ng-model="lieu" placeholder="Lieu">
-			<input type="text" ng-model="date" placeholder="Date">
+			<input type="text" id="des" ng-model="description" placeholder="Saisir la description">
+			<select id="req" name="singleSelect" ng-model="selectedRequired">
+				<option value="option-1">true</option>
+				<option value="option-2">false</option>
+			  </select>
+			<input id="lieu" type="text" ng-model="lieu" placeholder="Lieu">
+			<input id="date" type="text" ng-model="date" placeholder="Date">
 			<input type="submit" ng-click="createMeeting()" value="Valider">
-			<input type="submit" ng-click="getMeetingList()" value="Liste de réunions"> -->
-
+			<div id="result" class="alert alert-success" ng-show="success">
+				<button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="ion-close-round"></i></button>
+				<i class="ion-alert"></i> Votre action a été prise en compte avec succès !
+			</div>
 		</form>
-		<h1>Liste des réunion </h1>
-		<input type="submit" ng-click="getMeetingList()" value="Liste de réunions">
 
-		<table >
-			<p>Objet</p>
-			<u>
-				<i >
-					{{ value}}
-				</i>
-
-			</u>
-
-		</table>
-	</div>
-
-	<button type="submit" ng-click="searchMeeting()" value="Valider">
 </div>

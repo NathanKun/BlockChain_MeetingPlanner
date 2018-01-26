@@ -9,6 +9,10 @@
     height: 100%;
 }
 
+.container {
+	margin-top: 200px;
+}
+
 .meetingbox{
 	width: 320px;
 	height: 300px;
@@ -20,7 +24,7 @@
 	transform: translate(-50%, -50%);
 	box-sizing: border-box;
 	padding: 70px 30px;
-	
+
 }
 
 .avatar{
@@ -140,3 +144,12 @@ div.container{
 	text-align: center;
 }
 
+#btn {
+	border: none;
+	outline: none;
+	height: 40px;
+	background : #fb2525;
+	color: #fff;
+	font-size: 18px;
+	border-radius : 20px;
+}
