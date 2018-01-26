@@ -63,9 +63,15 @@ myApp.service('accountService', function () {
 		return false;
 	};
 
-  accountService.getAccounts = function() {
-    return accounts;
-  };
+	accountService.getAccounts = function() {
+		return accounts;
+	};
+	
+	accountService.findUserByAddress = function(add) {
+		return deployedContract.findUserByAddress.call(add).then(function(user) {
+			return {"address" : add, "name" : user[0], "email" : user[1]}
+		});
+	}
 
 	return accountService;
 });
@@ -174,37 +180,41 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
 					var prom = invitationService.findInvitationById(id).then(function(invitation){
 						// find meeting by meetingId found in invitation
 						return meetingService.findMeetingById(invitation.meetingId).then(function(meeting) {
-							//console.log(invitation);
-							//console.log(meeting);
-							invStatus = invitation.statusNumber;
-							isAccepted = 0;
-							isRefused = 0;
-							
-							switch(invStatus) {
-								case 0:
+							// find organizer name by address from invitation.organizer
+							return accountService.findUserByAddress(invitation.organizer).then(function(org) {
+								//console.log(invitation);
+								//console.log(meeting);
+								//console.log(org);
+								invStatus = invitation.statusNumber;
+								isAccepted = 0;
+								isRefused = 0;
+								
+								switch(invStatus) {
+									case 0:
+										break;
+									case 1:
+										isAccepted = 1;
+										isRefused = 2;
+										break;
+									case 2:
+										isAccepted = 2;
+										isRefused = 1;
+										break;
+									default:
 									break;
-								case 1:
-									isAccepted = 1;
-									isRefused = 2;
-									break;
-								case 2:
-									isAccepted = 2;
-									isRefused = 1;
-									break;
-								default:
-								break;
-							}
-							
-							return {
+								}
+								
+								return {
 									"id" : invitation.id,
 									"description" : meeting.description, 
 									"date" : meeting.date,
 									"place" : meeting.place,
 									"status" : meeting.statusString,
-									"organizer" : invitation.organizer,
+									"organizer" : org.name,
 									"isAccepted" : isAccepted,
 									"isRefused" : isRefused
 								};
+							});
 						});
 					});
 					promises.push(prom);

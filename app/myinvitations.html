@@ -11,10 +11,10 @@
 			<td>{{ inv.status }}</td>
 			<td ng-if="inv.isAccepted == 2"></td>
 			<td ng-if="inv.isAccepted == 1">Accepted</td>
-			<td ng-attr-id="{{ inv.id + '-accept' }}" ng-if="inv.isAccepted == 0"><button ng-click="acceptInvitation(inv.id)">Accept</button></td>
+			<td ng-attr-id="{{ inv.id + '-accept' }}" ng-if="inv.isAccepted == 0"><button class="btn btn-success" ng-click="acceptInvitation(inv.id)">Accept</button></td>
 			<td ng-if="inv.isRefused == 2"></td>
 			<td ng-if="inv.isRefused == 1">Refused</td>
-			<td ng-attr-id="{{ inv.id + '-refuse' }}" ng-if="inv.isRefused == 0"><button ng-click="refuseInvitation(inv.id)">Refuse</button></td>
+			<td ng-attr-id="{{ inv.id + '-refuse' }}" ng-if="inv.isRefused == 0"><button class="btn btn-danger" ng-click="refuseInvitation(inv.id)">Refuse</button></td>
 		</tr>
 	</table>
 </div>
