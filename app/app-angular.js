@@ -4,7 +4,7 @@ var myApp = angular.module('app', ["ngRoute"]);
 /*
  * ROUTE
  */
-myApp.config(function($routeProvider) {
+myApp.config(function($routeProvider, $locationProvider) {
   $routeProvider
     .when("/", {
       templateUrl: "login.html",
@@ -22,6 +22,8 @@ myApp.config(function($routeProvider) {
       templateUrl: "myinvitations.html",
       controller: "myInvitationsController"
     });
+    $locationProvider.html5Mode({ enabled: true, requireBase: false });
+
 });
 
 
@@ -35,11 +37,11 @@ myApp.service('accountService', function () {
 	var accountService = {};
 	// all available accounts
 	accounts = window.web3.eth.accounts;
-	
+
 	accountService.loggedInUser = undefined;
-	
+
 	accountService.getLoggedInAddress = function() {return this.loggedInUser;};
-	
+
 	accountService.login = function(address) {
 		if(accountService.isAddressExists(address)) {
 			accountService.loggedInUser = address;
@@ -49,7 +51,7 @@ myApp.service('accountService', function () {
 			return false;
 		}
 	};
-	
+
 	accountService.logout = function() {
 		loggedInUser = undefined;
 	}
@@ -87,8 +89,8 @@ myApp.service('meetingService', function() {
 	meetingService.findMeetingById = function(meetingId) {
 		return deployedContract.findMeetingById.call(meetingId).then(function(mt) {
 			// uint id, bool required, address manager, string description, string lieu, uint date, Status status
-			return {"id" : mt[0].toNumber(), "required" : mt[1], "organizer" : mt[2], "description" : mt[3], 
-				"place" : mt[4], "date" : mt[5].toNumber(), "statusNumber" : mt[6].toNumber(), 
+			return {"id" : mt[0].toNumber(), "required" : mt[1], "organizer" : mt[2], "description" : mt[3],
+				"place" : mt[4], "date" : mt[5].toNumber(), "statusNumber" : mt[6].toNumber(),
 				"statusString" : mt[6].toNumber() == 0 ? "In progress" : "Closed"};
 		});
 	}
@@ -97,7 +99,7 @@ myApp.service('meetingService', function() {
 	meetingService.createMeeting = function(description, required, lieu, date) {
 		return deployedContract.CreateMeeting(description, required, lieu, date, true, {from: accounts[0]});
 	};
-	
+
 	//get the meeting list
 	meetingService.getMeetingList = function() {
 		return deployedContract.GetMeetingList.call( {from: accounts[0]});
@@ -131,7 +133,7 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
 
 		return deployedContract.addInvitation(participantAddr, meetingId, {from: accountService.loggedInUser}).then(
 			function(){return "ok";});
-		
+
 	};
 
 	// call find invitation by id function in contract, return json with infos of invitation
@@ -179,7 +181,7 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
 							invStatus = invitation.statusNumber;
 							isAccepted = 0;
 							isRefused = 0;
-							
+
 							switch(invStatus) {
 								case 0:
 									break;
@@ -194,10 +196,10 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
 								default:
 								break;
 							}
-							
+
 							return {
 									"id" : invitation.id,
-									"description" : meeting.description, 
+									"description" : meeting.description,
 									"date" : meeting.date,
 									"place" : meeting.place,
 									"status" : meeting.statusString,
@@ -209,30 +211,30 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
 					});
 					promises.push(prom);
 				}
-					
+
 			}
-			
+
 			return Promise.all(promises).then(function(values) {
 				console.log(values);
 				return values;
 			});
 		});
 	};
-	
+
 	function invitationStatusNumberToString(number) {
 		return ["WAITING" , "ACCEPTED", "REFUSED", "CANCELED"][number]
 	}
-	
+
 	function invitationStatusStringToNumber(string) {
 		switch(string) {
-			case "WAITING": return 0; 
-			case "ACCEPTED": return 1; 
-			case "REFUSED": return 2; 
+			case "WAITING": return 0;
+			case "ACCEPTED": return 1;
+			case "REFUSED": return 2;
 			case "CANCELED": return 3;
 			default: return "Status not exists";
 		}
 	}
-	
+
 
   //Return a list of all participants possible
   invitationService.findAllParticipantPossible = function(msgSender) {
@@ -336,7 +338,7 @@ myApp.controller('myInvitationsController', function(accountService, invitationS
 		$scope.invitations = invitations;
 		$scope.$apply();
 	});
-	
+
 	$scope.acceptInvitation = function(invId) {
 		invitationService.setInvitationStatusAccepted(invId).then(function(response) {
 			if(response == "ok") {
@@ -347,7 +349,7 @@ myApp.controller('myInvitationsController', function(accountService, invitationS
 			}
 		});
 	};
-	
+
 	$scope.refuseInvitation = function(invId) {
 		invitationService.setInvitationStatusRefused(invId).then(function(response) {
 			if(response == "ok") {
