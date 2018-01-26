@@ -43,17 +43,17 @@ contract MeetingPlanner {
     /* constructor of contract */
 	function MeetingPlanner() public {
 	    // seed of user
-        userList[0x4db2da7660a1e2edc15cacd815c39d0574103cb3] = 
+        userList[0x4db2da7660a1e2edc15cacd815c39d0574103cb3] =
             User("Junyang", "junyang.he@groupe-esigelec.org");
-        userList[0x013ba5d38f3a03c63909d48be7a81df2b60a61f4] = 
+        userList[0x013ba5d38f3a03c63909d48be7a81df2b60a61f4] =
             User("Yuzhou", "yuzhou.song@groupe-esigelec.org");
-        userList[0xfac6be69d005caa557b2e36c6fb41959188c438c] = 
+        userList[0xfac6be69d005caa557b2e36c6fb41959188c438c] =
             User("Charaf", "c.i@groupe-esigelec.org");
-        userList[0x465caa1267d97ec054635704ed68102970cb6adc] = 
+        userList[0x465caa1267d97ec054635704ed68102970cb6adc] =
             User("José", "j.d@groupe-esigelec.org");
-        userList[0xea8328fca972e48d9bec1039400be99d4ce760be] = 
+        userList[0xea8328fca972e48d9bec1039400be99d4ce760be] =
             User("Gael", "g.o@groupe-esigelec.org");
-		
+
 		// seed of meeting
 		meetingList.push(Meeting({id: 1, manager: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
 			description: "meeting 1", required: true , lieu: 'rue m1', date: 1, status: Status.InPROGRESS}));
@@ -63,13 +63,13 @@ contract MeetingPlanner {
 			description: "meeting 1", required: true , lieu: 'rue m1', date: 3, status: Status.InPROGRESS}));
 		// seed of invitation
         invitations.push(
-            Invitation({id: 1, organizer: 0x465caa1267d97ec054635704ed68102970cb6adc, 
+            Invitation({id: 1, organizer: 0x465caa1267d97ec054635704ed68102970cb6adc,
 			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 1, invitationStatus: InvitationStatus.WAITING}));
         invitations.push(
-            Invitation({id: 2, organizer: 0x465caa1267d97ec054635704ed68102970cb6adc, 
+            Invitation({id: 2, organizer: 0x465caa1267d97ec054635704ed68102970cb6adc,
 			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 2, invitationStatus: InvitationStatus.ACCEPTED}));
         invitations.push(
-            Invitation({id: 3, organizer: 0x465caa1267d97ec054635704ed68102970cb6adc, 
+            Invitation({id: 3, organizer: 0x465caa1267d97ec054635704ed68102970cb6adc,
 			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 3, invitationStatus: InvitationStatus.REFUSED}));
 	}
 
@@ -84,11 +84,11 @@ contract MeetingPlanner {
 
     /* Methods for Meeting */
 	// find meeting by id
-	function findMeetingById(uint meetingId) public constant returns(uint id, bool required, address manager, 
+	function findMeetingById(uint meetingId) public constant returns(uint id, bool required, address manager,
 		string description, string lieu, uint date, Status status) {
 		for(uint i = 0; i < meetingList.length; i++) {
 			if(meetingList[i].id == meetingId) {
-				return (meetingList[i].id, meetingList[i].required, meetingList[i].manager, 
+				return (meetingList[i].id, meetingList[i].required, meetingList[i].manager,
 					meetingList[i].description, meetingList[i].lieu, meetingList[i].date, meetingList[i].status);
 			}
 		}
@@ -195,13 +195,13 @@ contract MeetingPlanner {
 
     /* Methods for Invitation */
     // add an new invitations to storage
-    function addInvitation(address participant, uint meetingId) public {
+    function addInvitation(address participant, uint meetingId) public{
         invitations.push(
             Invitation(invitations.length + 1, msg.sender, participant, meetingId, InvitationStatus.WAITING));
-    }
+	  }
 
     // find an invitation by id
-    function findInvitationById(uint invitationId) constant public 
+    function findInvitationById(uint invitationId) constant public
             returns (uint id, address orga, address part, uint meetingId, InvitationStatus invitationStatus) {
         for (uint i = 0; i < invitations.length; i++) {
             if(invitations[i].id == invitationId) {
