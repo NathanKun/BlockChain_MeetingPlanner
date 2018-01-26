@@ -18,18 +18,24 @@ myApp.config(function($routeProvider) {
 
 
 
-/* 
+/*
  * SERVICES
  */
- 
+ /* Get name service */
+ myApp.service('GetNameService', function() {
+   // get user name
+   GetNameService.getName = function(adr) {
+     return deployedContract.getName(adr);
+   };
+
 /* account service */
 myApp.service('accountService', function () {
 	var accountService = {};
 	// all available accounts
 	accounts = window.web3.eth.accounts;
-	
+
 	loggedInUser = undefined;
-	
+
 	accountService.login = function(address) {
 		if(accountService.isAddressExists(address)) {
 			loggedInUser = address;
@@ -38,15 +44,15 @@ myApp.service('accountService', function () {
 			return false;
 		}
 	};
-	
+
 	accountService.getLoggedInAddress = function() {
 		return loggedInUser;
 	}
-	
+
 	accountService.logout = function() {
 		loggedInUser = undefined;
 	}
-	
+
 	accountService.isAddressExists = function isAccountExists(address) {
 		for(i = 0; i < accounts.length; i++) {
 			if(address == accounts[i]) {
@@ -90,55 +96,55 @@ myApp.service('meetingService', function() {
 
 /* invitation service */
 myApp.service('invitationService', ['accountService', 'meetingService', function(accountService, meetingService) {
-	
+
 	var invitationService = {};
 	deployedContract = MeetingPlanner.deployed();
-	
+
 	// local function to change invitation status
 	function setInvitationStatus(msgSender, invitationId, invStatus) {
 		if(deployedContract.setInvitationStatus.call(invitationId, invStatus, {from: msgSender})) return "ok";
 		else return "invitation id not exists";
 	};
-	
+
 	// call add invitation function in contract
 	invitationService.addInvitation = function(msgSender, participantAddr, meetingId) {
 		if(!accountService.isAccountExists(msgSender)) return "organizer address not exists";
 		if(!accountService.isAccountExists(participantAddr)) return "participant address not exists";
 		if(!meetingService.searchMeeting(meetingId)) return "meeting id not exists";
-		
+
 		deployedContract.addInvitation(participantAddr, meetingId, {from: msgSender});
 		return "ok";
 	};
-	
+
 	// call find invitation by id function in contract, return json with infos of invitation
 	invitationService.findInvitationById = function(msgSender, invitationId) {
 		return deployedContract.findInvitationById.call(invitationId, {from: msgSender});
 	};
-	
+
 	// call set invitation status function in contract
 	// enum MeetingStatus {WAITING, ACCEPTED, REFUSED, CANCELED}
 	invitationService.setInvitationStatusAccepted = function(msgSender, invitationId, invStatus) {
 		return setInvitationStatus(msgSender, invitationId, 1);
 	};
-	
+
 	invitationService.setInvitationStatusRefused = function(msgSender, invitationId, invStatus) {
 		return setInvitationStatus(msgSender, invitationId, 2);
 	};
-	
+
 	invitationService.setInvitationStatusCanceled = function(msgSender, invitationId, invStatus) {
 		return setInvitationStatus(msgSender, invitationId, 3);
 	};
-	
+
 	// call find all invitation id created function in contract, return json array
 	invitationService.findAllInvitationIdCreated = function(msgSender) {
 		return deployedContract.findAllInvitationIdCreated({from: msgSender});
 	};
-	
+
 	// call find all invitation id received function in contract, return json array
 	invitationService.findAllInvitationReceived = function(msgSender) {
 		return deployedContract.findAllInvitationReceived({from: msgSender});
 	};
-	
+
 	return invitationService;
 }]);
 
@@ -147,6 +153,12 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
 /*
  * CONTROLLERS
  */
+
+// controller for Get Name
+ myApp.controller('MenuController', function(GetNameService, $scope) {
+   // Print the name gotten
+   $scope.titre = GetNameService.getName(getLoggedInAddress());
+ });
 
 // controller for MeetingIndex page
 myApp.controller('meetingIndexController', function(meetingService, $scope) {
@@ -179,5 +191,18 @@ myApp.controller('LoginController', function(accountService, $scope, $location) 
 			alert("Address incorrect.");
 	}
 });
-
-
+//Boutons
+myApp.controller('MenuController', function($scope, $location) {
+  //Bouton create meeting
+	$scope.SendCreateMeeting = function() {
+			$location.path('/MeetingIndex');
+	}
+  //Bouton list meetings
+  $scope.SendListMeetings = function() {
+			$location.path('/ListMeetingsIndex');
+	}
+  //Bouton list invitations
+  $scope.SendListInvitations = function() {
+			$location.path('/ListInvitationsIndex');
+	}
+});
