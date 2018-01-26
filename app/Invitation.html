@@ -1,5 +1,5 @@
 <div class="container" ng-controller="invitationController">
-	<h2>Assign an appoitment</h2>
+	<h2>Assign an appointment</h2>
 	<div class="container">
 		<style>
 			.form-control {
@@ -9,7 +9,7 @@
 		</style>
 
 		<div class="form-group">
-			<label for="exampleFormControlSelect1">select participants</label>
+			<label for="exampleFormControlSelect1">Select participants</label>
 			<select class="form-control" id="exampleFormControlSelect1" ng-model="participant">
 				<option ng-repeat="user in getAllParticipantPossibles" value='{{user[2]}}'>{{user[0]}}&nbsp;&nbsp;{{user[1]}}</option>
 				</select>
@@ -17,7 +17,8 @@
 
 		<div class="form-group">
 			<div class="col-sm-offset-2 col-sm-10">
-				<button type="button" class="btn btn-primary" ng-click="getSubmit()">Add</button>
+				<button type="button" class="btn btn-primary" ng-click="addInvitation()">Add</button>
+				<!--<button type="button" class="btn btn-primary" ng-click="findInvitationByMeetingId()">FindAllInvitations</button> -->
 			</div>
 		</div>
 
@@ -28,18 +29,13 @@
 					<th scope="col">Réponse</th>
 				</tr>
 			</thead>
-			<tr>
-				<td>Simon Dupont</td>
-				<td>Refusé</td>
-			</tr>
-			<tr>
-				<td>Jacob Norton</td>
-				<td>Accepté</td>
-			</tr>
-			<tr>
-				<td>Jacob Simon</td>
-				<td>Accepté</td>
+			<tr ng-repeat = "invitation in invitations">
+				<td value='{{invitation.UserName}}'>{{invitation.UserName}}</td>
+				<td value='{{invitation.Status}}'>{{invitation.Status}}</td>
 			</tr>
 		</table>
+		
+		
+		<input class="btn btn-primary" type="submit" ng-click="returnToMeetingList()" value="Retourner" />
 	</div>
 </div>

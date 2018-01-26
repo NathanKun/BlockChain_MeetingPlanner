@@ -212,10 +212,10 @@ contract MeetingPlanner {
 
     /* Methods for Invitation */
     // add an new invitations to storage
-    function addInvitation(address participant, uint meetingId) public {
+    function addInvitation(address participant, uint meetingId) public{
         invitations.push(
             Invitation(invitations.length + 1, msg.sender, participant, meetingId, InvitationStatus.WAITING));
-    }
+	  }
 
     // find an invitation by id
     function findInvitationById(uint invitationId) constant public
