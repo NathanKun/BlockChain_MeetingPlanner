@@ -84,7 +84,8 @@ myApp.service('meetingService', function() {
 		return deployedContract.findMeetingById.call(meetingId).then(function(mt) {
 			// uint id, bool required, address manager, string description, string lieu, uint date, Status status
 			return {"id" : mt[0].toNumber(), "required" : mt[1], "organizer" : mt[2], "description" : mt[3], 
-				"place" : mt[4], "date" : mt[5].toNumber(), "statusNumber" : mt[6].toNumber(), "statusString" : mt[6].toNumber()};
+				"place" : mt[4], "date" : mt[5].toNumber(), "statusNumber" : mt[6].toNumber(), 
+				"statusString" : mt[6].toNumber() == 0 ? "In progress" : "Closed"};
 		});
 	}
 
@@ -109,8 +110,8 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
 	deployedContract = MeetingPlanner.deployed();
 
 	// local function to change invitation status
-	function setInvitationStatus(msgSender, invitationId, invStatus) {
-		return deployedContract.setInvitationStatus.call(invitationId, invStatus, {from: msgSender}).then(
+	function setInvitationStatus(invitationId, invStatus) {
+		return deployedContract.setInvitationStatus(invitationId, invStatus, {from: accountService.loggedInUser}).then(
 			function(value) {
 				if(value) return "ok";
 				else return "invitation id not exists";
@@ -119,12 +120,12 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
 	};
 
 	// call add invitation function in contract
-	invitationService.addInvitation = function(msgSender, participantAddr, meetingId) {
-		if(!accountService.isAccountExists(msgSender)) return "organizer address not exists";
+	invitationService.addInvitation = function(participantAddr, meetingId) {
+		if(!accountService.isAccountExists(accountService.loggedInUser)) return "organizer address not exists";
 		if(!accountService.isAccountExists(participantAddr)) return "participant address not exists";
 		if(!meetingService.searchMeeting(meetingId)) return "meeting id not exists";
 
-		deployedContract.addInvitation(participantAddr, meetingId, {from: msgSender});
+		deployedContract.addInvitation(participantAddr, meetingId, {from: accountService.loggedInUser});
 		return "ok";
 	};
 
@@ -137,17 +138,17 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
 	};
 
 	// call set invitation status function in contract
-	// enum MeetingStatus {WAITING, ACCEPTED, REFUSED, CANCELED}
-	invitationService.setInvitationStatusAccepted = function(msgSender, invitationId, invStatus) {
-		return setInvitationStatus(msgSender, invitationId, 1);
+	// enum InvitationStatus {WAITING, ACCEPTED, REFUSED, CANCELED}
+	invitationService.setInvitationStatusAccepted = function(invitationId) {
+		return setInvitationStatus(invitationId, 1);
 	};
 
-	invitationService.setInvitationStatusRefused = function(msgSender, invitationId, invStatus) {
-		return setInvitationStatus(msgSender, invitationId, 2);
+	invitationService.setInvitationStatusRefused = function(invitationId) {
+		return setInvitationStatus(invitationId, 2);
 	};
 
-	invitationService.setInvitationStatusCanceled = function(msgSender, invitationId, invStatus) {
-		return setInvitationStatus(msgSender, invitationId, 3);
+	invitationService.setInvitationStatusCanceled = function(invitationId) {
+		return setInvitationStatus(invitationId, 3);
 	};
 
 	// call find all invitation id created function in contract, return json array
@@ -158,8 +159,7 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
 	// call find all invitation id received function in contract, return json array
 	invitationService.findAllInvitationReceived = function() {
 		// find all invitations' id
-console.log("in function");
-		deployedContract.findAllInvitationIdReceived.call(accountService.loggedInUser).then(function(values) {
+		return deployedContract.findAllInvitationIdReceived.call(accountService.loggedInUser).then(function(values) {
 			var promises = [];
 			for(var i = 0; i < values.length; i++) {
 				var id = values[i].toNumber();
@@ -180,9 +180,11 @@ console.log("in function");
 									break;
 								case 1:
 									isAccepted = 1;
+									isRefused = 2;
 									break;
 								case 2:
-									isAccepted = 0;
+									isAccepted = 2;
+									isRefused = 1;
 									break;
 								default:
 								break;
@@ -193,8 +195,8 @@ console.log("in function");
 									"description" : meeting.description, 
 									"date" : meeting.date,
 									"place" : meeting.place,
-									"status" : meeting.meetingStatus,
-									"organizer" : invitation[1],
+									"status" : meeting.statusString,
+									"organizer" : invitation.organizer,
 									"isAccepted" : isAccepted,
 									"isRefused" : isRefused
 								};
@@ -293,14 +295,31 @@ myApp.controller('invitationController', function(accountService, $scope, $locat
 
 
 myApp.controller('myInvitationsController', function(accountService, invitationService, $scope, $location) {
-	$scope.invitations = invitationService.findAllInvitationReceived();
+	invitationService.findAllInvitationReceived().then(function(invitations) {
+		$scope.invitations = invitations;
+		$scope.$apply();
+	});
 	
 	$scope.acceptInvitation = function(invId) {
-		console.log("accept " + invId);
+		invitationService.setInvitationStatusAccepted(invId).then(function(response) {
+			if(response == "ok") {
+				document.getElementById(invId + '-accept').innerHTML = 'Accepted';
+				document.getElementById(invId + '-refuse').innerHTML = '';
+			} else {
+				alert(response);
+			}
+		});
 	};
 	
 	$scope.refuseInvitation = function(invId) {
-		console.log("refuse " + invId);
+		invitationService.setInvitationStatusRefused(invId).then(function(response) {
+			if(response == "ok") {
+				document.getElementById(invId + '-accept').innerHTML = '';
+				document.getElementById(invId + '-refuse').innerHTML = 'Refused';
+			} else {
+				alert(response);
+			}
+		});
 	};
 });
 

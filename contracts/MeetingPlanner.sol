@@ -66,10 +66,10 @@ contract MeetingPlanner {
 			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 1, invitationStatus: InvitationStatus.WAITING}));
         invitations.push(
             Invitation({id: 2, organizer: 0x465caa1267d97ec054635704ed68102970cb6adc, 
-			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 2, invitationStatus: InvitationStatus.WAITING}));
+			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 2, invitationStatus: InvitationStatus.ACCEPTED}));
         invitations.push(
             Invitation({id: 3, organizer: 0x465caa1267d97ec054635704ed68102970cb6adc, 
-			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 3, invitationStatus: InvitationStatus.WAITING}));
+			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 3, invitationStatus: InvitationStatus.REFUSED}));
 	}
 
     /* Methods for Meeting */
