@@ -1,7 +1,7 @@
 pragma solidity ^0.4.8;
 
 contract MeetingPlanner {
-	
+
 	/* enums */
 	enum MeetingStatus {WAITING, ACCEPTED, REFUSED, CANCELED}
 
@@ -19,7 +19,7 @@ contract MeetingPlanner {
 		string lieu;
 		uint date;
 	}
-	
+
 	struct Invitation {
 	    uint id;
 		address organizer;
@@ -30,23 +30,33 @@ contract MeetingPlanner {
 
     /* global storages */
 	mapping (address => User) userList;
+
     Meeting[] meetingList;
     Invitation[] invitations;
 
     /* constructor of contract */
 	function MeetingPlanner() public {
 	    // seed of user
-        userList[0x4dB2Da7660a1E2eDc15CAcD815c39D0574103Cb3] = 
+        userList[0x4dB2Da7660a1E2eDc15CAcD815c39D0574103Cb3] =
             User("Junyang", "junyang.he@groupe-esigelec.org");
-        userList[0x013BA5D38F3A03C63909d48be7A81Df2B60A61F4] = 
+        userList[0x013BA5D38F3A03C63909d48be7A81Df2B60A61F4] =
             User("Yuzhou", "yuzhou.song@groupe-esigelec.org");
-        userList[0xfAc6Be69d005cAA557B2e36c6FB41959188C438c] = 
+        userList[0xfAc6Be69d005cAA557B2e36c6FB41959188C438c] =
             User("Charaf", "c.i@groupe-esigelec.org");
-        userList[0x465CaA1267d97eC054635704Ed68102970CB6Adc] = 
+        userList[0x465CaA1267d97eC054635704Ed68102970CB6Adc] =
             User("José", "j.d@groupe-esigelec.org");
-        userList[0xeA8328FcA972E48D9beC1039400be99D4cE760BE] = 
+        userList[0xeA8328FcA972E48D9beC1039400be99D4cE760BE] =
             User("Gael", "g.o@groupe-esigelec.org");
 	}
+
+		/* Methods for invitation */
+	//get user from account
+		function findUserByAddress(address account) constant public returns (string userName, string userMail){
+			return (userList[account].name, userList[account].mail);
+		}
+
+
+
 
     /* Methods for Meeting */
 	// Create a meeting with a description argument
@@ -138,9 +148,9 @@ contract MeetingPlanner {
         invitations.push(
             Invitation(invitations.length + 1, msg.sender, participant, meetingId, MeetingStatus.WAITING));
     }
-    
+
     // find an invitation by id
-    function findInvitationById(uint invitationId) constant public 
+    function findInvitationById(uint invitationId) constant public
             returns (uint id, address orga, address part, uint meetingId, MeetingStatus meetingStatus) {
         for (uint i = 0; i <= invitations.length; i++) {
             if(invitations[i].id == invitationId) {
@@ -150,7 +160,7 @@ contract MeetingPlanner {
         }
         return (0, 0x0,0x0, 0, MeetingStatus.CANCELED);
     }
-    
+
     // change invitationsStatus
     function setInvitationStatus(uint invitationId, MeetingStatus meetingStatus) public returns (bool isFound){
         for (uint i = 0; i < invitations.length; i++) {
@@ -161,7 +171,7 @@ contract MeetingPlanner {
         }
         return false;
     }
-    
+
     // find all invitations created by an address
     function findAllInvitationIdCreated() constant public returns (uint[] ids){
         uint[] memory invitationIdsOfAddress = new uint[](invitations.length);
@@ -187,5 +197,7 @@ contract MeetingPlanner {
         }
         return (invitationIdsOfAddress);
     }
-    
+
+
+
 }
