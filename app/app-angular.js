@@ -56,7 +56,7 @@ myApp.service('accountService', function () {
 		loggedInUser = undefined;
 	}
 
-	accountService.isAddressExists = function isAccountExists(address) {
+	accountService.isAddressExists = function(address) {
 		for(i = 0; i < accounts.length; i++) {
 			if(address == accounts[i]) {
 				return true;
@@ -133,8 +133,8 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
 
 	// call add invitation function in contract
 	invitationService.addInvitation = function(participantAddr, meetingId) {
-		if(!accountService.isAccountExists(accountService.loggedInUser)) return "organizer address not exists";
-		if(!accountService.isAccountExists(participantAddr)) return "participant address not exists";
+		if(!accountService.isAddressExists(accountService.loggedInUser)) return "organizer address not exists";
+		if(!accountService.isAddressExists(participantAddr)) return "participant address not exists";
 		if(!meetingService.searchMeeting(meetingId)) return "meeting id not exists";
 
 		return deployedContract.addInvitation(participantAddr, meetingId, {from: accountService.loggedInUser}).then(
@@ -262,7 +262,6 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
             for (var i = 0; i < values.length; i++) {
                 values[i].push(allAccount[i]);
                 listUser[i] = values[i];
-                console.log(values[i]);
             }
             //console.log(listUser);
             return listUser;
@@ -325,7 +324,7 @@ myApp.controller('LoginController', function(accountService, $scope, $location) 
 	}
 });
 
-
+////////////////////////////////////////
 myApp.controller('invitationController', function(accountService, invitationService, $scope, $location) {
 	var listAdd = [];
 
@@ -337,7 +336,8 @@ myApp.controller('invitationController', function(accountService, invitationServ
 
 	$scope.getSubmit = function(){
 	  listAdd.push($scope.participant);
-	  console.log(listAdd);
+    invitationService.addInvitation($scope.participant, $location.search().myParam);
+    console.log(invitationService.addInvitation($scope.participant, $location.search().myParam));
 	  return listAdd;
 	}
 });
