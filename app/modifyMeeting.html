@@ -1,0 +1,57 @@
+<div id="meeting-content">
+	<div ng-controller="modifyMeetingController">
+			<h1>Update Meeting</h1>
+			<div class= "row">
+				<div class="col-md-12 col-lg-6">
+					<div class="row">
+						<div class="col-md-10">
+							<input class="form-control" type="text" placeholder="Description" ng-model="description">
+						</div>
+						<div class="col-md-2">
+							<input class="btn btn-primary" type="submit" ng-click="setDescription()" value="Submit" />
+						</div>
+					</div>
+				</div>
+					
+				<div class="col-md-12 col-lg-6">
+					<div class="row">
+						<div class="col-md-10">
+							<select type="text" class="form-control" placeholder="Require" ng-model="required">
+								<option value="true">true</option>
+								<option value="false">false</option>
+							</select>	
+						</div>
+						<div class="col-md-2">
+							<input class="btn btn-primary" type="submit" ng-click="setRequired()" value="Submit" />
+						</div>
+					</div>
+				</div>
+					
+				<div class="col-md-12 col-lg-6">
+					<div class="row">
+						<div class="col-md-10">
+							<input class="form-control" type="text" placeholder="Lieu" ng-model="place">
+						</div>
+						<div class="col-md-2">
+							<input class="btn btn-primary" type="submit" ng-click="setPlace()" value="Submit" />
+						</div>
+					</div>
+				</div>
+					
+				<div class="col-md-12 col-lg-6">
+					<div class="row">
+						<div class="col-md-10">
+							<input class="form-control" type="text" placeholder="Date" ng-model="date">
+						</div>
+						<div class="col-md-2">
+							<input class="btn btn-primary" type="submit" ng-click="setDate()" value="Submit" />
+						</div>
+					</div>
+				</div>
+					
+				<div class="col-md-12 col-lg-6">
+					<input class="btn btn-primary" type="submit" ng-click="returnToMeetingList()" value="Retourner" />
+				</div>
+			</div>
+	</div>
+</div>

@@ -16,15 +16,19 @@ myApp.config(function($routeProvider, $locationProvider) {
     })
     .when("/MeetingIndex", {
       templateUrl: "MeetingIndex.html",
-      controller: "meetingIndexController"
+      controller: "createMeetingController"
     })
     .when("/MeetingCreated", {
       templateUrl: "MeetingCreated.html",
-      controller: "meetingIndexController"
+      controller: "listMeetingController"
     })
     .when("/Invitation", {
       templateUrl: "Invitation.html",
       controller: "invitationController"
+    })
+    .when("/modifyMeeting", {
+      templateUrl: "modifyMeeting.html",
+      controller: "modifyMeetingController"
     })
     .when("/myinvitations", {
       templateUrl: "myinvitations.html",
@@ -104,7 +108,7 @@ myApp.service('meetingService', ['accountService', function(accountService) {
 
   // add createMeeting function to service
   meetingService.createMeeting = function(description, required, lieu, date) {
-    return deployedContract.CreateMeeting(description, required, lieu, date, true, {
+    return deployedContract.CreateMeeting(description, (required == 'true'), lieu, date, true, {
       from: accountService.getLoggedInAddress()
     });
   }
@@ -125,11 +129,17 @@ myApp.service('meetingService', ['accountService', function(accountService) {
   //get the meetings created by an address
   meetingService.getMeetingCreated = function(address) {
     return deployedContract.GetAllMeetingCreated(address).then(function(ids){
-      for( var i = 0; i < ids.length; i++){
-        var id = ids[i].toNumber();
-        meetingList.push(meetingService.findMeetingById(id));
-      }
-      return meetingList;
+		var promises = [];
+		for( var i = 0; i < ids.length; i++){
+			var id = ids[i].toNumber();
+			if(id != 0) {
+				 promises.push(meetingService.findMeetingById(id));
+			}
+		}
+		return Promise.all(promises).then(function(meetings) {
+			console.log(meetings);
+			return meetings;
+		});
     });
   }
 
@@ -141,6 +151,26 @@ myApp.service('meetingService', ['accountService', function(accountService) {
 				"place" : mt[4], "date" : mt[5].toNumber(), "statusNumber" : mt[6].toNumber(),
 				"statusString" : mt[6].toNumber() == 0 ? "In progress" : "Closed"};
 		});
+	}
+	
+	meetingService.closeMeeting = function(meetingId) {
+		return deployedContract.CloseMeeting(meetingId, {from: accountService.loggedInUser});
+	}
+	
+	meetingService.setMeetingDescription = function(meetingId, newDesc) {
+		return deployedContract.setMeetingDescription(meetingId, newDesc, {from: accountService.loggedInUser});
+	}
+	
+	meetingService.setMeetingPlace = function(meetingId, newPlace) {
+		return deployedContract.setMeetingPlace(meetingId, newPlace, {from: accountService.loggedInUser});
+	}
+	
+	meetingService.setMeetingDate = function(meetingId, newDate) {
+		return deployedContract.setMeetingDate(meetingId, newDate, {from: accountService.loggedInUser});
+	}
+	
+	meetingService.setMeetingRequired = function(meetingId, newReq) {
+		return deployedContract.setMeetingRequired(meetingId, (newReq == 'true'), {from: accountService.loggedInUser});
 	}
 
   //return completed service
@@ -314,9 +344,8 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
  * CONTROLLERS
  */
 
-//controller for MeetingIndex page
-myApp.controller('meetingIndexController', function(meetingService,accountService, $scope, $rootScope,$location) {
-  $scope.success = null;
+ 
+myApp.controller('listMeetingController', function(meetingService, accountService, $scope, $location) {
   var meetingList = [];
 
   meetingService.getMeetingCreated(accountService.getLoggedInAddress()).then(function(mt){
@@ -325,30 +354,6 @@ myApp.controller('meetingIndexController', function(meetingService,accountServic
     $scope.$apply();
   });
 
-  //create meeting function for button 'Create'
-  $scope.createMeeting = function() {
-    //call createContract() in MeetingIndexService service and pass 'description' from page to it
-    meetingService.createMeeting($scope.description, $scope.selectedRequired, $scope.lieu, $scope.date);
-    $scope.success = true;
-    document.querySelector("#result").focus();
-  }
-  // go to meeting created page
-  $scope.goToMeetingCreated = function(){
-    $location.path('/MeetingCreated');
-  }
-
-  // $scope.getMeetingCreated = function(){
-  //   for (id in meetingListIds){
-  //     meetingService.findMeetingById(id).then(function(value){
-  //       for(m in value){
-  //         meetingList.push(m);
-  //         console.log(v.toNumber());
-  //         console.log(meetingList);
-  //   }
-  //   });
-  // }
-  //   return meetingList;
-  // }
 
 
   $scope.getMeetingCreated = function(){
@@ -367,8 +372,67 @@ myApp.controller('meetingIndexController', function(meetingService,accountServic
     meetingService.searchMeeting($scope.id).then(function(value) {
        $scope.meetingFound == value ;
       console.log(value);
-   });
+   });}
+   
+  $scope.returnToIndex = function() {
+	  $location.path('/mainpage');
+  };
+  
+  $scope.goToModifyMeeting = function(meetingId) {
+	  $location.path('/modifyMeeting').search({"meetingId" : meetingId});
   }
+  
+  $scope.addInvitation = function(meetingId) {
+	  $location.path('/addinvitation').search({"meetingId" : meetingId});
+  }
+  
+  $scope.closeMeeting = function(meetingId) {
+	  meetingService.closeMeeting(meetingId).then(function(){
+		document.getElementById('status-' + meetingId).innerHTML = 'Closed';
+		document.getElementById('btn1-' + meetingId).innerHTML = 'Closed';
+		document.getElementById('btn2-' + meetingId).innerHTML = 'Closed';
+		document.getElementById('btn3-' + meetingId).innerHTML = 'Closed';
+	  });
+  }
+});
+ 
+//controller for MeetingIndex page
+myApp.controller('createMeetingController', function(meetingService, accountService, $scope, $location) {
+	
+  //create meeting function for button 'Create'
+  $scope.createMeeting = function() {
+    //call createContract() in MeetingIndexService service and pass 'description' from page to it
+    meetingService.createMeeting($scope.description, $scope.selectedRequired, $scope.lieu, $scope.date).then(function(){
+		alert("Meeting created");
+	});
+  }
+  
+  $scope.returnToIndex = function() {
+	  $location.path('/mainpage');
+  };
+});
+
+myApp.controller('modifyMeetingController', function(meetingService, $scope, $location) {
+	var meetingId = $location.search().meetingId;
+	
+	meetingService.findMeetingById(meetingId).then(function(mt) {
+		console.log(mt);
+		$scope.date = mt.date;
+		$scope.place = mt.place;
+		$scope.required = mt.required;
+		$scope.description = mt.description;
+		
+		$scope.$apply();
+	});
+	
+	$scope.setDescription = function() { meetingService.setMeetingDescription(meetingId, $scope.description) };
+	$scope.setDate = function() { meetingService.setMeetingDate(meetingId, $scope.date) };
+	$scope.setPlace = function() { meetingService.setMeetingPlace(meetingId, $scope.place) };
+	$scope.setRequired = function() { meetingService.setMeetingRequired(meetingId, $scope.required) };
+	
+	$scope.returnToMeetingList = function() {
+		$location.path('/MeetingCreated');
+	};
 });
 
 
@@ -434,12 +498,12 @@ myApp.controller('myInvitationsController', function(accountService, invitationS
 
 myApp.controller('mainPageController', function(accountService, $location, $scope) {
 	accountService.findUserByAddress(accountService.loggedInUser).then(function(user){
-		console.log(user);
+		//console.log(user);
 		$scope.name = user.name;
 		$scope.$apply();
 	});
 	
 	$scope.createMeeting = function() { $location.path('/MeetingIndex'); }
-	$scope.listMeeting = function() { $location.path('/ListMeeting'); }
+	$scope.listMeeting = function() { $location.path('/MeetingCreated'); }
 	$scope.myInvitations = function() { $location.path('/myinvitations'); };
 } );

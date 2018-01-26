@@ -162,7 +162,7 @@ contract MeetingPlanner {
 
 
 	//set the required attribute of the meeting
-    function setMeetingRequired(uint id,bool _required) public returns(bool){
+    function setMeetingRequired(uint id, bool _required) public returns(bool){
         for( uint j=0 ; j < meetingList.length ; j++){
 			if(meetingList[j].id == id ){
 				meetingList[j].required = _required;

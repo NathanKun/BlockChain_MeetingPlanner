@@ -4,6 +4,7 @@ module.exports = {
     "login.html": "login.html",
     "MeetingIndex.html": "MeetingIndex.html",
     "MeetingCreated.html": "MeetingCreated.html",
+    "modifyMeeting.html": "modifyMeeting.html",
 	"Invitation.html": "Invitation.html",
 	"myinvitations.html": "myinvitations.html",
 	"mainPage.html": "mainPage.html",
