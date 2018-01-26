@@ -14,6 +14,10 @@ myApp.config(function($routeProvider) {
       templateUrl: "MeetingIndex.html",
       controller: "meetingIndexController"
     })
+    .when("/MeetingCreated", {
+      templateUrl: "MeetingCreated.html",
+      controller: "meetingIndexController"
+    })
     .when("/Invitation", {
       templateUrl: "Invitation.html",
       controller: "invitationController"
@@ -65,8 +69,11 @@ myApp.service('accountService', function () {
 	return accountService;
 });
 
+
+
+
 /* meeting service */
-myApp.service('meetingService', function() {
+myApp.service('meetingService', ['accountService', function(accountService) {
 
   // empty service object
   var meetingService = {};
@@ -74,35 +81,37 @@ myApp.service('meetingService', function() {
   // MeetingPlanner contract
   deployedContract = MeetingPlanner.deployed();
 
-  // get all available accounts
-  meetingService.getAccounts = function() {
-    return accounts;
-  };
-
   // add createMeeting function to service
-  meetingIndexService.createMeeting = function(description, required, lieu, date) {
+  meetingService.createMeeting = function(description, required, lieu, date) {
     return deployedContract.CreateMeeting(description, required, lieu, date, true, {
-      from: accounts[0]
+      from: accountService.getLoggedInAddress()
     });
   }
 
   //add searchMeeting function to service
-  meetingIndexService.searchMeeting = function(id) {
+  meetingService.searchMeeting = function(id) {
     return deployedContract.SearchMeeting.call(id, {
-      from: accounts[0]
+      from: accountService.getLoggedInAddress()
     });
   }
   //get the meeting list
-    meetingIndexService.getMeetingList = function() {
-      return deployedContract.GetMeetingList.call( {
-        from: accounts[0]
+  meetingService.getMeetingById = function(id) {
+      return deployedContract.GetMeetingById(id, {
+        from: accountService.getLoggedInAddress()
       });
     }
 
-  //return completed service
-  return meetingIndexService;
+  //get the meetings created by an address
+  meetingService.getMeetingCreated = function(address) {
+    return deployedContract.GetAllMeetingCreated(address, {
+      from: accountService.getLoggedInAddress()
+    });
+  }
 
-});
+  //return completed service
+  return meetingService;
+
+}]);
 
 /* invitation service */
 myApp.service('invitationService', ['accountService', 'meetingService', function(accountService, meetingService) {
@@ -165,37 +174,37 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
  */
 
 //controller for MeetingIndex page
-myApp.controller('meetingIndexController', function(MeetingIndexService, $scope, $rootScope,$location) {
+myApp.controller('meetingIndexController', function(meetingService,accountService, $scope, $rootScope,$location) {
+  $scope.success = null;
 
   //create meeting function for button 'Create'
   $scope.createMeeting = function() {
     //call createContract() in MeetingIndexService service and pass 'description' from page to it
-    MeetingIndexService.createMeeting($scope.description, $scope.required, $scope.lieu, $scope.date);
-    console.log($scope.description);
+    meetingService.createMeeting($scope.description, $scope.selectedRequired, $scope.lieu, $scope.date);
+    $scope.success = true;
+    document.getElementById("result").focus();
   }
-  // Button search meeting
-  $scope.goToSearchMeeting = function(){
-    $location.path('/SearchMeeting');
-			console.log("Search");
+  // go to meeting created page
+  $scope.goToMeetingCreated = function(){
+    $location.path('/MeetingCreated');
   }
-  //get the meeting list
-  $scope.getMeetingList = function(){
-    MeetingIndexService.getMeetingList().then(function(value) {
-      console.log(value);
-  });
+
+  // Go to meeting created
+  $scope.getMeetingCreated = function(){
+    $scope.address = accountService.getLoggedInAddress();
+      meetingService.getMeetingCreated($scope.address).then(function(value) {
+        console.log(searchMeeting(value));
+        console.log("1" + value);
+    });
   }
 
   // Search meeting
    $scope.searchMeeting = function() {
-     MeetingIndexService.searchMeeting($scope.id).then(function(value) {
+    meetingService.searchMeeting($scope.id).then(function(value) {
        $scope.meetingFound == value ;
       console.log(value);
-
-       //console.log($scope.meetingFound);
-
    });
   }
-
 });
 
 

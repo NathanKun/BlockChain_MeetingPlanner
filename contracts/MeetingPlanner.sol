@@ -54,6 +54,16 @@ contract MeetingPlanner {
             User("Gael", "g.o@groupe-esigelec.org");
 	}
 
+    // Research user name
+    //function getName(address adr) public returns(string name){
+      //      if(userList[address] == adr ){
+        //        return userList[address].name;
+          //  }
+            //else {
+              //  return "null";
+            //}
+    //}
+
     /* Methods for Meeting */
 	//Create a meeting with a description argument
     function CreateMeeting(string _description,  bool _required, string _lieu,uint _date) public {
@@ -90,11 +100,28 @@ contract MeetingPlanner {
     }
 
     //get meeting list
-	function GetMeetingList() public constant returns (bool exist,uint id, address manager,string description, bool required, string lieu , uint date) {
+	function GetMeetingById(uint input) public constant returns (bool exist,uint id, address manager,string description, bool required, string lieu , uint date) {
 		for( uint j=0 ; j < meetingList.length ; j++){
-			return  (true, meetingList[j].id,meetingList[j].manager ,meetingList[j].description, meetingList[j].required, meetingList[j].lieu, meetingList[j].date);
+			if(meetingList[j].id == input){
+                return  (true, meetingList[j].id,meetingList[j].manager ,meetingList[j].description, meetingList[j].required, meetingList[j].lieu, meetingList[j].date);
+			}
+
         }
     }
+
+    //get meeting created by an address
+	function GetAllMeetingCreated(address adr) public constant returns (uint[] ids) {
+		uint[] memory meetingIdsOfAddress = new uint[](meetingList.length);
+        uint j = 0;
+        for (uint i = 0; i <= meetingList.length; i++) {
+            if(meetingList[i].manager == adr) {
+                meetingIdsOfAddress[j] = meetingList[i].id;
+                j++;
+            }
+        }
+        return (meetingIdsOfAddress);
+    }
+
 
     //Get meeting status
     function GetMeetingStatus(uint id) public returns (Status) {

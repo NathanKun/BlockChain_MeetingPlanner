@@ -3,6 +3,7 @@ module.exports = {
     "index.html": "index.html",
     "login.html": "login.html",
     "MeetingIndex.html": "MeetingIndex.html",
+    "MeetingCreated.html": "MeetingCreated.html",
 	"Invitation.html": "Invitation.html",
     "app-angular.js": "app-angular.js",
     "app.js": [
