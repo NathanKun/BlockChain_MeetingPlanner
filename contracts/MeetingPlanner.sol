@@ -36,6 +36,7 @@ contract MeetingPlanner {
 
     /* global storages */
 	mapping (address => User) userList;
+
     Meeting[] meetingList;
     Invitation[] invitations;
 
@@ -71,6 +72,15 @@ contract MeetingPlanner {
             Invitation({id: 3, organizer: 0x465caa1267d97ec054635704ed68102970cb6adc, 
 			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 3, invitationStatus: InvitationStatus.REFUSED}));
 	}
+
+		/* Methods for invitation */
+	//get user from account
+		function findUserByAddress(address account) constant public returns (string userName, string userMail){
+			return (userList[account].name, userList[account].mail);
+		}
+
+
+
 
     /* Methods for Meeting */
 	// find meeting by id
@@ -189,7 +199,7 @@ contract MeetingPlanner {
         invitations.push(
             Invitation(invitations.length + 1, msg.sender, participant, meetingId, InvitationStatus.WAITING));
     }
-    
+
     // find an invitation by id
     function findInvitationById(uint invitationId) constant public 
             returns (uint id, address orga, address part, uint meetingId, InvitationStatus invitationStatus) {
@@ -201,7 +211,7 @@ contract MeetingPlanner {
         }
         return (0, 0x0,0x0, 0, InvitationStatus.CANCELED);
     }
-    
+
     // change invitationsStatus
     function setInvitationStatus(uint invitationId, InvitationStatus invitationStatus) public returns (bool isFound){
         for (uint i = 0; i < invitations.length; i++) {
@@ -238,5 +248,4 @@ contract MeetingPlanner {
         }
         return invitationIdsOfAddress;
     }
-
 }

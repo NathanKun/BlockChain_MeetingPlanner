@@ -63,6 +63,10 @@ myApp.service('accountService', function () {
 		return false;
 	};
 
+  accountService.getAccounts = function() {
+    return accounts;
+  };
+
 	return accountService;
 });
 
@@ -125,8 +129,9 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
 		if(!accountService.isAccountExists(participantAddr)) return "participant address not exists";
 		if(!meetingService.searchMeeting(meetingId)) return "meeting id not exists";
 
-		deployedContract.addInvitation(participantAddr, meetingId, {from: accountService.loggedInUser});
-		return "ok";
+		return deployedContract.addInvitation(participantAddr, meetingId, {from: accountService.loggedInUser}).then(
+			function(){return "ok";});
+		
 	};
 
 	// call find invitation by id function in contract, return json with infos of invitation
@@ -228,8 +233,34 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
 		}
 	}
 	
+
+  //Return a list of all participants possible
+  invitationService.findAllParticipantPossible = function(msgSender) {
+    var allAccount = accountService.getAccounts();
+    var listPromises = [];
+    var listUser = [];
+    for(i = 0; i < allAccount.length; i++) {
+      listPromises.push(
+      deployedContract.findUserByAddress.call(allAccount[i], {from: msgSender}).then(function(value) {
+        return value;
+          })
+      );
+    }
+    return Promise.all(listPromises).then(function(values){
+            for (var i = 0; i < values.length; i++) {
+                values[i].push(allAccount[i]);
+                listUser[i] = values[i];
+                console.log(values[i]);
+            }
+            //console.log(listUser);
+            return listUser;
+        });
+
+  };
+
 	return invitationService;
 }]);
+
 
 
 
@@ -283,13 +314,19 @@ myApp.controller('LoginController', function(accountService, $scope, $location) 
 });
 
 
-myApp.controller('invitationController', function(accountService, $scope, $location) {
-	$scope.title = "Welcome to the meeting planner!";
-	$scope.verifiyLogin = function() {
-		if(accountService.login($scope.address))
-			$location.path('/MeetingIndex');
-		else
-			alert("Address incorrect.");
+myApp.controller('invitationController', function(accountService, invitationService, $scope, $location) {
+	var listAdd = [];
+
+	invitationService.findAllParticipantPossible(accountService.getLoggedInAddress()).then(function(value) {
+	  $scope.getAllParticipantPossibles = value;
+	  $scope.$apply();
+
+	  });
+
+	$scope.getSubmit = function(){
+	  listAdd.push($scope.participant);
+	  console.log(listAdd);
+	  return listAdd;
 	}
 });
 
@@ -322,5 +359,3 @@ myApp.controller('myInvitationsController', function(accountService, invitationS
 		});
 	};
 });
-
-
