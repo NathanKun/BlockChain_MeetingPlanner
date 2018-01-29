@@ -111,24 +111,20 @@ myApp.service('meetingService', ['accountService', function(accountService) {
 	deployedContract = MeetingPlanner.deployed();
 
   // add createMeeting function to service
-  meetingService.createMeeting = function(description, required, lieu, date) {
-    return deployedContract.CreateMeeting(description, (required == 'true'), lieu, date, true, {
+  meetingService.createMeeting = function(description, required, lieu, dates) {
+    return deployedContract.CreateMeeting(description, (required == 'true'), lieu, dates, true, {
       from: accountService.getLoggedInAddress()
     });
   }
 
   //add searchMeeting function to service
   meetingService.searchMeeting = function(id) {
-    return deployedContract.SearchMeeting.call(id, {
-      from: accountService.getLoggedInAddress()
-    });
+    return deployedContract.SearchMeeting.call(id);
   }
   //get the meeting list
   meetingService.getMeetingById = function(id) {
-      return deployedContract.GetMeetingById(id, {
-        from: accountService.getLoggedInAddress()
-      });
-    }
+    return deployedContract.GetMeetingById.call(id);
+  }
 
   //get the meetings created by an address
   meetingService.getMeetingCreated = function(address) {
@@ -141,7 +137,7 @@ myApp.service('meetingService', ['accountService', function(accountService) {
 			}
 		}
 		return Promise.all(promises).then(function(meetings) {
-			console.log(meetings);
+			//console.log(meetings);
 			return meetings;
 		});
     });
@@ -150,9 +146,15 @@ myApp.service('meetingService', ['accountService', function(accountService) {
 
   meetingService.findMeetingById = function(meetingId) {
 		return deployedContract.findMeetingById.call(meetingId).then(function(mt) {
+			var dates = mt[5];
+			var datesToShow = [];
+			for(var i = 0; i < dates.length; i++) {
+				datesToShow.push(unixToDate(dates[i].toNumber()));
+			}
+			//console.log(datesToShow);
 			// uint id, bool required, address manager, string description, string lieu, uint date, Status status
 			return {"id" : mt[0].toNumber(), "required" : mt[1], "organizer" : mt[2], "description" : mt[3],
-				"place" : mt[4], "date" : mt[5].toNumber(), "statusNumber" : mt[6].toNumber(),
+				"place" : mt[4], "dates" : datesToShow, "statusNumber" : mt[6].toNumber(),
 				"statusString" : mt[6].toNumber() == 0 ? "In progress" : "Closed"};
 		});
 	}
@@ -169,8 +171,8 @@ myApp.service('meetingService', ['accountService', function(accountService) {
 		return deployedContract.setMeetingPlace(meetingId, newPlace, {from: accountService.loggedInUser});
 	}
 	
-	meetingService.setMeetingDate = function(meetingId, newDate) {
-		return deployedContract.setMeetingDate(meetingId, newDate, {from: accountService.loggedInUser});
+	meetingService.setMeetingDates = function(meetingId, newDates) {
+		deployedContract.setMeetingDates(meetingId, newDates, {from: accountService.loggedInUser});
 	}
 	
 	meetingService.setMeetingRequired = function(meetingId, newReq) {
@@ -221,13 +223,18 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
   invitationService.findInvitationById = function(invitationId) {
     //console.log(invitationId);
     return deployedContract.findInvitationById.call(invitationId).then(function(inv) {
+		var datesToShow = [];
+		for(var i = 0; i < 5; i++) {
+			datesToShow.push(inv[5][i].toNumber() == 0 ? false : true);
+		}
       return {
         "id": inv[0].toNumber(),
         "organizer": inv[1],
         "participant": inv[2],
         "meetingId": inv[3].toNumber(),
         "statusNumber": inv[4].toNumber(),
-        "statusString": invitationStatusNumberToString(inv[4].toNumber())
+        "statusString": invitationStatusNumberToString(inv[4].toNumber()),
+		"datesChoises": datesToShow
       };
     });
   };
@@ -245,6 +252,10 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
   invitationService.setInvitationStatusCanceled = function(invitationId) {
     return setInvitationStatus(invitationId, 3);
   };
+  
+  invitationService.setInvitationDatesChoises = function(invitationId, newDatesChoises) {
+	  return deployedContract.setInvitationDatesChoises(invitationId, newDatesChoises, {from: accountService.loggedInUser});
+  }
 
   // call find all invitation id created function in contract, return json array
   invitationService.findAllInvitationIdCreated = function() {
@@ -269,34 +280,16 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
                 //console.log(invitation);
                 //console.log(meeting);
                 //console.log(org);
-                invStatus = invitation.statusNumber;
-                isAccepted = 0;
-                isRefused = 0;
-
-                switch (invStatus) {
-                  case 0:
-                    break;
-                  case 1:
-                    isAccepted = 1;
-                    isRefused = 2;
-                    break;
-                  case 2:
-                    isAccepted = 2;
-                    isRefused = 1;
-                    break;
-                  default:
-                    break;
-                }
 
                 return {
                   "id": invitation.id,
                   "description": meeting.description,
-                  "date": meeting.date,
+                  "dates": meeting.dates,
+                  "datesChoises": invitation.datesChoises,
                   "place": meeting.place,
-                  "status": meeting.statusString,
-                  "organizer": org.name,
-                  "isAccepted": isAccepted,
-                  "isRefused": isRefused
+                  "meetingStatus": meeting.statusString,
+                  "invitationStatus": invitation.statusString,
+                  "organizer": org.name
                 };
               });
             });
@@ -307,26 +300,22 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
       }
 
       return Promise.all(promises).then(function(values) {
-        console.log(values);
+        //console.log(values);
         return values;
       });
     });
   };
 
   function invitationStatusNumberToString(number) {
-    return ["WAITING", "ACCEPTED", "REFUSED", "CANCELED"][number]
+    return ["WAITING", "RESPONSED"][number]
   }
 
   function invitationStatusStringToNumber(string) {
     switch (string) {
       case "WAITING":
         return 0;
-      case "ACCEPTED":
+      case "RESPONSED":
         return 1;
-      case "REFUSED":
-        return 2;
-      case "CANCELED":
-        return 3;
       default:
         return "Status not exists";
     }
@@ -366,35 +355,16 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
  * CONTROLLERS
  */
 
- 
 myApp.controller('listMeetingController', function(meetingService, accountService, $scope, $location) {
   var meetingList = [];
 
   meetingService.getMeetingCreated(accountService.getLoggedInAddress()).then(function(mt){
     $scope.meetingList = mt;
-    console.log($scope.meetingList)
+    //console.log($scope.meetingList)
     $scope.$apply();
   });
 
 
-  $scope.getMeetingCreated = function(){
-     $scope.address = accountService.getLoggedInAddress();
-       meetingService.getMeetingCreated($scope.address).then(function(value) {
-         for (v in value) {
-           meetingList.push(meetingService.findMeetingById(v));
-           console.log(meetingList);
-         }
-         return meetingList;
-     });
-  }
-
-  // Search meeting
-   $scope.searchMeeting = function() {
-    meetingService.searchMeeting($scope.id).then(function(value) {
-       $scope.meetingFound == value ;
-      console.log(value);
-   });}
-   
   $scope.returnToIndex = function() {
 	  $location.path('/mainpage');
   };
@@ -420,25 +390,66 @@ myApp.controller('listMeetingController', function(meetingService, accountServic
 //controller for MeetingIndex page
 myApp.controller('createMeetingController', function(meetingService, accountService, $scope, $location) {
 	
-  //create meeting function for button 'Create'
-  $scope.createMeeting = function() {
-    //call createContract() in MeetingIndexService service and pass 'description' from page to it
-    meetingService.createMeeting($scope.description, $scope.selectedRequired, $scope.lieu, $scope.date).then(function(){
-		alert("Meeting created");
-	});
-  }
-  
-  $scope.returnToIndex = function() {
-	  $location.path('/mainpage');
-  };
+	//create meeting function for button 'Create'
+	$scope.createMeeting = function() {
+		var datesToSave = [];
+		datesToSave.push(dateToUnix($scope.date1 + " " + $scope.time1));
+		datesToSave.push(dateToUnix($scope.date2 + " " + $scope.time2));
+		datesToSave.push(dateToUnix($scope.date3 + " " + $scope.time3));
+		datesToSave.push(dateToUnix($scope.date4 + " " + $scope.time4));
+		datesToSave.push(dateToUnix($scope.date5 + " " + $scope.time5));
+		
+		//call createContract() in MeetingIndexService service and pass 'description' from page to it
+		meetingService.createMeeting($scope.description, $scope.selectedRequired, $scope.lieu, datesToSave).then(function(){
+			alert("Meeting created");
+		});
+	}
+
+	$scope.returnToIndex = function() {
+		$location.path('/mainpage');
+	};
+
+	var showingDiv = 1;
+	$scope.addDateDiv = function () {
+		if(showingDiv < 5){
+			showingDiv++;
+			$('#div-date-' + showingDiv).show();
+			$('#meetingbox').css('height', parseInt($('#meetingbox').css('height').replace('px', '')) + 88 + "px");
+		}
+	}
 });
 
 myApp.controller('modifyMeetingController', function(meetingService, $scope, $location) {
 	var meetingId = $location.search().meetingId;
 	
+	$scope.showingDiv = 1;
+	$scope.addDateDiv = function () {
+		if($scope.showingDiv < 5){
+			$scope.showingDiv++;
+			$('#meetingbox').css('height', parseInt($('#meetingbox').css('height').replace('px', '')) + 88 + "px");
+		}
+	};
+	
 	meetingService.findMeetingById(meetingId).then(function(mt) {
-		console.log(mt);
-		$scope.date = mt.date;
+		var dates = mt.dates;
+		
+		// find how many date have been recored, and show them.
+	
+		$scope.showingDiv = dates[0] == 0 ? 0 : (dates[1] == 0 ? 1 : (dates[2] == 0 ? 2 : dates[3] == 0 ? 3 : (dates[4] == 0 ? 4 : 5)));
+		$('#meetingbox').css('height', 648 + 88 * ($scope.showingDiv - 1) + "px");
+		console.log($scope.showingDiv);
+		
+		$scope.date1 = dates[0] == 0 ? undefined : (new Date(dates[0].split(" ")[0]));
+		$scope.date2 = dates[1] == 0 ? undefined : (new Date(dates[1].split(" ")[0]));
+		$scope.date3 = dates[2] == 0 ? undefined : (new Date(dates[2].split(" ")[0]));
+		$scope.date4 = dates[3] == 0 ? undefined : (new Date(dates[3].split(" ")[0]));
+		$scope.date5 = dates[4] == 0 ? undefined : (new Date(dates[4].split(" ")[0]));
+		$scope.time1 = dates[0] == 0 ? undefined : (dates[0].split(" ")[1]);
+		$scope.time2 = dates[1] == 0 ? undefined : (dates[1].split(" ")[1]);
+		$scope.time3 = dates[2] == 0 ? undefined : (dates[2].split(" ")[1]);
+		$scope.time4 = dates[3] == 0 ? undefined : (dates[3].split(" ")[1]);
+		$scope.time5 = dates[4] == 0 ? undefined : (dates[4].split(" ")[1]);
+		
 		$scope.place = mt.place;
 		$scope.required = mt.required;
 		$scope.description = mt.description;
@@ -446,10 +457,21 @@ myApp.controller('modifyMeetingController', function(meetingService, $scope, $lo
 		$scope.$apply();
 	});
 	
-	$scope.setDescription = function() { meetingService.setMeetingDescription(meetingId, $scope.description) };
-	$scope.setDate = function() { meetingService.setMeetingDate(meetingId, $scope.date) };
-	$scope.setPlace = function() { meetingService.setMeetingPlace(meetingId, $scope.place) };
-	$scope.setRequired = function() { meetingService.setMeetingRequired(meetingId, $scope.required) };
+	$scope.modifyMeeting = function() {
+		var datesToSave = [];
+		datesToSave.push($scope.time1 == undefined ? 0 : (dateToUnix($scope.date1 + " " + $scope.time1)));
+		datesToSave.push($scope.time2 == undefined ? 0 : (dateToUnix($scope.date2 + " " + $scope.time2)));
+		datesToSave.push($scope.time3 == undefined ? 0 : (dateToUnix($scope.date3 + " " + $scope.time3)));
+		datesToSave.push($scope.time4 == undefined ? 0 : (dateToUnix($scope.date4 + " " + $scope.time4)));
+		datesToSave.push($scope.time5 == undefined ? 0 : (dateToUnix($scope.date5 + " " + $scope.time5)));
+
+		meetingService.setMeetingDates(meetingId, datesToSave);
+		meetingService.setMeetingDescription(meetingId, $scope.description);
+		meetingService.setMeetingRequired(meetingId, $scope.selectedRequired);
+		meetingService.setMeetingPlace(meetingId, $scope.place);
+		
+		alert("Meeting Modified");
+	}
 	
 	$scope.returnToMeetingList = function() {
 		$location.path('/MeetingCreated');
@@ -484,7 +506,7 @@ myApp.controller('invitationController', function(accountService, invitationServ
   $scope.addInvitation = function() {
     // listAdd.push($scope.participant);
 
-    console.log($scope.participant);
+    //console.log($scope.participant);
     invitationService.addInvitation($scope.participant, $location.search().meetingId);
     getAllInvitations();
   }
@@ -518,12 +540,12 @@ myApp.controller('invitationController', function(accountService, invitationServ
       };
       return Promise.all(prom).then(function(values) {
         for (j = 0; j < values.length; j++) {
-          console.log(values[j].meetingId + " : " + thisMeetingId);
+          //console.log(values[j].meetingId + " : " + thisMeetingId);
           if(values[j].meetingId == thisMeetingId) {
             invitationList.push(values[j]);
           }
         }
-        console.log(invitationList);
+        //console.log(invitationList);
         $scope.invitations = invitationList;
         $scope.$apply();
       });
@@ -536,31 +558,48 @@ myApp.controller('invitationController', function(accountService, invitationServ
 
 myApp.controller('myInvitationsController', function(accountService, invitationService, $scope, $location) {
   invitationService.findAllInvitationReceived().then(function(invitations) {
+	console.log(invitations);
     $scope.invitations = invitations;
     $scope.$apply();
   });
 
-  $scope.acceptInvitation = function(invId) {
-    invitationService.setInvitationStatusAccepted(invId).then(function(response) {
-      if (response == "ok") {
-        document.getElementById(invId + '-accept').innerHTML = 'Accepted';
-        document.getElementById(invId + '-refuse').innerHTML = '';
-      } else {
-        alert(response);
-      }
-    });
-  };
-
-  $scope.refuseInvitation = function(invId) {
-    invitationService.setInvitationStatusRefused(invId).then(function(response) {
-      if (response == "ok") {
-        document.getElementById(invId + '-accept').innerHTML = '';
-        document.getElementById(invId + '-refuse').innerHTML = 'Refused';
-      } else {
-        alert(response);
-      }
-    });
-  }
+	$scope.acceptInvitation = function(invId) {
+		var datesChoises;
+		for(var i = 0; i < $scope.invitations.length; i++) {
+			if($scope.invitations[i].id == invId){
+				datesChoises = $scope.invitations[i].datesChoises.slice(0); // clone array
+				break;
+			}
+		}
+		  
+		for(var i = 0; i < 5; i++) {
+			switch(datesChoises[i]) {
+				case true:
+				case 1:
+					datesChoises[i] = 1;
+					break;
+					
+				case false:
+				case 0:
+					datesChoises[i] = 0;
+				break;
+				
+				default:
+				break;
+			}
+		}
+		invitationService.setInvitationDatesChoises(invId, datesChoises).then(function(isFound) {
+			invitationService.setInvitationStatusAccepted(invId).then(function(response) {
+				if (response == "ok" && isFound) {
+					document.getElementById(invId + '-response').innerHTML = 'RESPONSED';
+				} else {
+					alert(response);
+				}
+			});
+		});
+		
+		console.log($scope.invitations);
+	};
   
   $scope.returnToIndex = function() {
 	  $location.path('/mainpage');
@@ -577,4 +616,44 @@ myApp.controller('mainPageController', function(accountService, $location, $scop
 	$scope.createMeeting = function() { $location.path('/MeetingIndex'); }
 	$scope.listMeeting = function() { $location.path('/MeetingCreated'); }
 	$scope.myInvitations = function() { $location.path('/myinvitations'); };
-} );
+});
+
+
+function unixToDate(unix) {
+	if(unix == 0) return 0;
+	
+	// Create a new JavaScript Date object based on the timestamp
+	// multiplied by 1000 so that the argument is in milliseconds, not seconds.
+	var dt = new Date(unix*1000);
+	var year = dt.getFullYear();
+	var month = dt.getMonth() + 1;
+	var day = dt.getDate();
+	var time = dt.getHours() == 0 ? "AM" : "PM";
+
+	// Will display time in 10:30:23 format
+	return year + "-" + month + "-" + day + " " + time;
+}
+
+function dateToUnix(date) {
+	if(date == 0) return 0;
+	
+	date = formatDate(date);
+	
+	// date to second + AM(0)/PM(12 hours)
+	var rt = parseInt((new Date(date.split(" ")[0]).getTime() / 1000).toFixed(0)) + parseInt(date.split(" ")[1] == 'AM' ? 0 : 60 * 60 * 12);
+	if(rt == NaN)
+		return 0;
+	return rt;
+}
+
+function formatDate(date) {
+    var d = new Date(date),
+        month = '' + (d.getMonth() + 1),
+        day = '' + d.getDate(),
+        year = d.getFullYear();
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+    return [year, month, day].join('-');
+}

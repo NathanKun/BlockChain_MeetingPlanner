@@ -1,20 +1,60 @@
 <div id="meeting-content">
-	<div class="meetingbox" ng-controller="createMeetingController">
+	<div id="meetingbox" class="meetingbox" ng-controller="createMeetingController">
 		<img src="assets/avatar.png" class="avatar">
 		<!-- <h1>WELCOME {{titre}}</h1> -->
 		<h1> Créer un rendez-vous</h1>
-		<p>Objet</p>
-		<input type="text" id="des" ng-model="description" placeholder="Saisir la description">
+		<div class="form-group">
+			<label>Objet</label>
+			<input type="text" class="form-control" ng-model="description" placeholder="Saisir la description">
+		</div>
+		<div class="form-group">
 		<p>Obligatoire ?</p>
-		<select id="req" name="singleSelect" class="form-control" ng-model="selectedRequired">
-			<option value="option-1">true</option>
-			<option value="option-2">false</option>
-		</select>
-		<p>Lieu</p>
-		<input id="lieu" type="text" ng-model="lieu" placeholder="Lieu">
-		<p>Date</p>
-		<input id="date" type="text" ng-model="date" placeholder="Date">
-		<input type="submit" ng-click="createMeeting()" value="Valider">
-		<input type="submit" ng-click="returnToIndex()" value="Retourner" />
+			<select id="req" name="singleSelect" class="form-control" ng-model="selectedRequired">
+				<option value="option-1">true</option>
+				<option value="option-2">false</option>
+			</select>
+		</div>
+		<div class="form-group">
+			<p>Lieu</p>
+			<input id="lieu" type="text" ng-model="lieu" placeholder="Lieu">
+		</div>
+		<div class="form-group">
+			<p>Dates</p>
+			<i id="btn-add-date" ng-click="addDateDiv()" class="fas fa-plus-circle fa-2x"></i>
+		</div>
+		<div id="div-date-1" class="form-group">
+			<input id="date1" type="date" ng-model="date1">
+			<label class="radio-inline">
+			<input type="radio" name="time1" ng-model="time1" value="AM"> Matin
+			<input type="radio" name="time1" ng-model="time1" value="PM"> Soir</label>
+		</div>
+		<div id="div-date-2" style="display: none" class="form-group">
+			<input id="date2" type="date" ng-model="date2">
+			<label class="radio-inline">
+			<input type="radio" name="time2" ng-model="time2" value="AM"> Matin
+			<input type="radio" name="time2" ng-model="time2" value="PM"> Soir</label>
+		</div>
+		<div id="div-date-3" style="display: none" class="form-group">
+			<input id="date3" type="date" ng-model="date3">
+			<label class="radio-inline">
+			<input type="radio" name="time3" ng-model="time3" value="AM"> Matin
+			<input type="radio" name="time3" ng-model="time3" value="PM"> Soir</label>
+		</div>
+		<div id="div-date-4" style="display: none" class="form-group">
+			<input id="date4" type="date" ng-model="date4">
+			<label class="radio-inline">
+			<input type="radio" name="time4" ng-model="time4" value="AM"> Matin
+			<input type="radio" name="time4" ng-model="time4" value="PM"> Soir</label>
+		</div>
+		<div id="div-date-5" style="display: none" class="form-group">
+			<input id="date5" type="date" ng-model="date5">
+			<label class="radio-inline">
+			<input type="radio" name="time5" ng-model="time5" value="AM"> Matin
+			<input type="radio" name="time5" ng-model="time5" value="PM"> Soir</label>
+		</div>
+		<div class="form-group">
+			<input type="submit" ng-click="createMeeting()" value="Valider">
+			<input type="submit" ng-click="returnToIndex()" value="Retourner" />
+		</div>
 	</div>
 </div>

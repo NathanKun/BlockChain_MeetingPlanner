@@ -3,34 +3,36 @@
 		<h1> Mes reunions</h1>
 		<div class="container">
 			<table class="table table-dark table-hover" ng-show="meetingList" ng-cloak>
-					<thead>
-					  <tr>
-						<th>Description</th>
-						<th>Obligatoire </th>
-						<th>Lieu</th>
-						<th>Date</th>
-						<th>Status</th>
-						<th>Modifier</th>
-						<th>Inviter</th>
-						<th>Clôturer</th>
-					  </tr>
-					</thead>
-					<tbody>
-					  <tr ng-repeat='meeting in meetingList'>
-						<td>{{meeting.description}}</td>
-						<td>{{meeting.required}}</td>
-						<td>{{meeting.place}}</td>
-						<td>{{meeting.date}}</td>
-						<td ng-attr-id='{{ "status-" + meeting.id }}'>{{meeting.statusString}}</td>
-						<td ng-attr-id='{{ "btn1-" + meeting.id }}' ng-if="meeting.statusNumber == 0"><button class="btn btn-success" ng-click="goToModifyMeeting(meeting.id)">Modifier</button></td>
-						<td ng-attr-id='{{ "btn2-" + meeting.id }}' ng-if="meeting.statusNumber == 0"><button class="btn btn-success" ng-click="addInvitation(meeting.id)">Inviter</button></td>
-						<td ng-attr-id='{{ "btn3-" + meeting.id }}' ng-if="meeting.statusNumber == 0"><button class="btn btn-success" ng-click="closeMeeting(meeting.id)">Clôturer</button></td>
-						<td ng-if="meeting.statusNumber == 1">Closed</td>
-						<td ng-if="meeting.statusNumber == 1">Closed</td>
-						<td ng-if="meeting.statusNumber == 1">Closed</td>
-					  </tr>
-					</tbody>
-				  </table>
+				<thead>
+				  <tr>
+					<th>Description</th>
+					<th>Obligatoire </th>
+					<th>Lieu</th>
+					<th>Dates</th>
+					<th>Status</th>
+					<th>Modifier</th>
+					<th>Inviter</th>
+					<th>Clôturer</th>
+				  </tr>
+				</thead>
+				<tbody>
+				  <tr ng-repeat='meeting in meetingList'>
+					<td>{{meeting.description}}</td>
+					<td>{{meeting.required}}</td>
+					<td>{{meeting.place}}</td>
+					<td>
+						<div ng-repeat="d in meeting.dates track by $index"><element ng-if="d != 0" style="font-size: 8px;">{{d}}</element></div>
+					</td>
+					<td ng-attr-id='{{ "status-" + meeting.id }}'>{{meeting.statusString}}</td>
+					<td ng-attr-id='{{ "btn1-" + meeting.id }}' ng-if="meeting.statusNumber == 0"><button class="btn btn-success" ng-click="goToModifyMeeting(meeting.id)">Modifier</button></td>
+					<td ng-attr-id='{{ "btn2-" + meeting.id }}' ng-if="meeting.statusNumber == 0"><button class="btn btn-success" ng-click="addInvitation(meeting.id)">Inviter</button></td>
+					<td ng-attr-id='{{ "btn3-" + meeting.id }}' ng-if="meeting.statusNumber == 0"><button class="btn btn-success" ng-click="closeMeeting(meeting.id)">Clôturer</button></td>
+					<td ng-if="meeting.statusNumber == 1">Closed</td>
+					<td ng-if="meeting.statusNumber == 1">Closed</td>
+					<td ng-if="meeting.statusNumber == 1">Closed</td>
+				  </tr>
+				</tbody>
+			</table>
 			<div class="row">
 				<div class="col-md-12">
 					<button class="btn btn-primary" ng-click="returnToIndex()">Return</button>

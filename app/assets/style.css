@@ -6,7 +6,7 @@
 	background-position : center;
 	font-family : sans-serif;
     width: 100%;
-    height: 100%;
+    height: 1100px;
 }
 
 .container {
@@ -14,11 +14,11 @@
 }
 
 .meetingbox{
-	width: 320px;
-	height: 700px;
+	width: 400px;
+	height: 648px; /* +88 for each date div, max 1000 */
 	background: #000;
 	color:#fff;
-	top: 50%;
+	top: 80%;
 	left: 50%;
 	position : absolute;
 	transform: translate(-50%, -50%);
@@ -47,16 +47,27 @@ h1{
 	margin-bottom: 2px;
 	padding: 0;
 	font-weight: bold;
-	font-style: italic
+	font-style: italic;
+	display: inline-block;
 }
 
-.meetingbox input{
-	width: 100%;
-	margin-bottom: 50px;
-}
-
-.meetingbox input[type="text"]
+/*.meetingbox input{
+}*/
+.meetingbox input[type="date"]
 {
+	width: 100%;
+	border: none;
+	border-bottom: 1px solid #fff;
+	background: transparent;
+	outline: none;
+	height: 40px;
+	color : #fff;
+	font-size: 16px;
+}
+
+.meetingbox input[type="text"] 
+{
+	width: 100%;
 	border: none;
 	border-bottom: 1px solid #fff;
 	background: transparent;
@@ -67,6 +78,7 @@ h1{
 }
 .meetingbox input[type = "submit"]
 {
+	width: 100%;
 	border: none;
 	outline: none;
 	height: 40px;
@@ -74,6 +86,7 @@ h1{
 	color: #fff;
 	font-size: 18px;
 	border-radius : 20px;
+	margin-bottom: 30px;
 }
 
 .meetingbox input[type="submit"]:hover

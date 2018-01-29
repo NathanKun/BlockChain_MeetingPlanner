@@ -3,7 +3,7 @@ pragma solidity ^0.4.2;
 contract MeetingPlanner {
 
 	/* enums */
-	enum InvitationStatus {WAITING, ACCEPTED, REFUSED, CANCELED}
+	enum InvitationStatus {WAITING, RESPONDED}
 
     enum Status {InPROGRESS, CLOSE}
 
@@ -22,7 +22,7 @@ contract MeetingPlanner {
 		address manager;
 		string description;
 		string lieu;
-		uint date;
+		uint32[5] dates;
         Status status;
 	}
 
@@ -32,6 +32,7 @@ contract MeetingPlanner {
 		address participant;
 		uint meetingId;
 		InvitationStatus invitationStatus;
+		uint32[5] datesChoises;
 	}
 
     /* global storages */
@@ -56,21 +57,30 @@ contract MeetingPlanner {
 
 		// seed of meeting
 		meetingList.push(Meeting({id: 1, manager: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
-			description: "meeting 1", required: true , lieu: 'rue m1', date: 1, status: Status.InPROGRESS}));
+			description: "meeting 1", required: true , lieu: 'rue m1', 
+			dates: [uint32(1517526000), 1517569200, 1517612400, 0, 0], 
+			status: Status.InPROGRESS}));
 		meetingList.push(Meeting({id: 2, manager: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
-			description: "meeting 1", required: true , lieu: 'rue m1', date: 2, status: Status.InPROGRESS}));
+			description: "meeting 2", required: true , lieu: 'rue meeting 2', 
+			dates: [uint32(1517526000), 1517612400, 1517655600, 1517742000, 0], 
+			status: Status.InPROGRESS}));
 		meetingList.push(Meeting({id: 3, manager: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
-			description: "meeting 1", required: true , lieu: 'rue m1', date: 3, status: Status.InPROGRESS}));
+			description: "meeting 3", required: true , lieu: 'rue 3', 
+			dates: [uint32(1517569200), 1517655600, 1517828400, 1517871600, 1517914800], 
+			status: Status.InPROGRESS}));
 		// seed of invitation
         invitations.push(
-            Invitation({id: 1, organizer: 0x465caa1267d97ec054635704ed68102970cb6adc,
-			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 1, invitationStatus: InvitationStatus.WAITING}));
+            Invitation({id: 1, organizer: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
+			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 1, 
+			invitationStatus: InvitationStatus.WAITING, datesChoises: [uint32(0), 0, 0, 0, 0]}));
         invitations.push(
-            Invitation({id: 2, organizer: 0x465caa1267d97ec054635704ed68102970cb6adc,
-			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 2, invitationStatus: InvitationStatus.ACCEPTED}));
+            Invitation({id: 2, organizer: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
+			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 2, 
+			invitationStatus: InvitationStatus.WAITING, datesChoises: [uint32(0), 0, 0, 0, 0]}));
         invitations.push(
-            Invitation({id: 3, organizer: 0x465caa1267d97ec054635704ed68102970cb6adc,
-			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 3, invitationStatus: InvitationStatus.REFUSED}));
+            Invitation({id: 3, organizer: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
+			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 3, 
+			invitationStatus: InvitationStatus.WAITING, datesChoises: [uint32(0), 0, 0, 0, 0]}));
 	}
 
 		/* Methods for invitation */
@@ -85,18 +95,18 @@ contract MeetingPlanner {
     /* Methods for Meeting */
 	// find meeting by id
 	function findMeetingById(uint meetingId) public constant returns(uint id, bool required, address manager,
-		string description, string lieu, uint date, Status status) {
+		string description, string lieu, uint32[5] dates, Status status) {
 		for(uint i = 0; i < meetingList.length; i++) {
 			if(meetingList[i].id == meetingId) {
 				return (meetingList[i].id, meetingList[i].required, meetingList[i].manager,
-					meetingList[i].description, meetingList[i].lieu, meetingList[i].date, meetingList[i].status);
+					meetingList[i].description, meetingList[i].lieu, meetingList[i].dates, meetingList[i].status);
 			}
 		}
 	}
 	//Create a meeting with a description argument
-    function CreateMeeting(string _description,  bool _required, string _lieu,uint _date) public {
+    function CreateMeeting(string _description,  bool _required, string _lieu,uint32[5] _dates) public {
     	meetingList.push(
-		    Meeting(meetingList.length + 1  , _required, msg.sender  , _description ,_lieu, _date,Status.InPROGRESS));
+		    Meeting(meetingList.length + 1, _required, msg.sender, _description, _lieu, _dates, Status.InPROGRESS));
     }
 
     //close a meeting
@@ -109,11 +119,15 @@ contract MeetingPlanner {
     }
 
 	//Search a meeting with some id argument
-	function SearchMeeting(uint id) public constant returns (bool exist,uint meeting_id, address manager,string description, bool required, string lieu , uint date, Status status) {
+	function SearchMeeting(uint id) public constant returns 
+	    (bool exist, uint meeting_id, address manager,string description, 
+	    bool required, string lieu , uint32[5] dates, Status status) {
 
 		for( uint j=0 ; j < meetingList.length ; j++){
 			if(meetingList[j].id == id ){
-				return (true, meetingList[j].id ,meetingList[j].manager ,meetingList[j].description, meetingList[j].required, meetingList[j].lieu, meetingList[j].date, meetingList[j].status);
+				return (true, meetingList[j].id, meetingList[j].manager, 
+    				meetingList[j].description, meetingList[j].required, 
+    				meetingList[j].lieu, meetingList[j].dates, meetingList[j].status);
 			}
         }
     }
@@ -124,16 +138,6 @@ contract MeetingPlanner {
 			if(meetingList[j].id == id ){
 				delete meetingList[j];
 			}
-        }
-    }
-
-    //get meeting list
-	function GetMeetingById(uint input) public constant returns (bool exist,uint id, address manager,string description, bool required, string lieu , uint date) {
-		for( uint j=0 ; j < meetingList.length ; j++){
-			if(meetingList[j].id == input){
-                return  (true, meetingList[j].id,meetingList[j].manager ,meetingList[j].description, meetingList[j].required, meetingList[j].lieu, meetingList[j].date);
-			}
-
         }
     }
 
@@ -200,11 +204,10 @@ contract MeetingPlanner {
         }
     }
     // set the date attribute of the meeting
-    function setMeetingDate(uint id,uint _date) public returns(uint){
+    function setMeetingDates(uint id, uint32[5] _dates) public{
         for( uint j=0 ; j < meetingList.length ; j++){
     		if(meetingList[j].id == id ){
-    			meetingList[j].date = _date;
-    			return meetingList[j].date;
+    			meetingList[j].dates = _dates;
     		}
         }
     }
@@ -214,19 +217,20 @@ contract MeetingPlanner {
     // add an new invitations to storage
     function addInvitation(address participant, uint meetingId) public{
         invitations.push(
-            Invitation(invitations.length + 1, msg.sender, participant, meetingId, InvitationStatus.WAITING));
+            Invitation(invitations.length + 1, msg.sender, participant, meetingId, 
+            InvitationStatus.WAITING, [uint32(0), 0, 0, 0, 0]));
 	  }
 
     // find an invitation by id
     function findInvitationById(uint invitationId) constant public
-            returns (uint id, address orga, address part, uint meetingId, InvitationStatus invitationStatus) {
+            returns (uint id, address orga, address part, uint meetingId, InvitationStatus invitationStatus, uint32[5] datesChoises) {
         for (uint i = 0; i < invitations.length; i++) {
             if(invitations[i].id == invitationId) {
                 return (invitationId, invitations[i].organizer, invitations[i].participant,
-                        invitations[i].meetingId, invitations[i].invitationStatus);
+                        invitations[i].meetingId, invitations[i].invitationStatus, invitations[i].datesChoises);
             }
         }
-        return (0, 0x0,0x0, 0, InvitationStatus.CANCELED);
+        return (0, 0x0,0x0, 0, InvitationStatus.WAITING, [uint32(0), 0, 0, 0, 0]);
     }
 
     // change invitationsStatus
@@ -238,6 +242,16 @@ contract MeetingPlanner {
             }
         }
         return false;
+    }
+	
+    // change dates choises
+    function setInvitationDatesChoises(uint invitationId, uint32[5] _datesChoises) public returns (bool isFound){
+        for (uint i = 0; i < invitations.length; i++) {
+            if(invitations[i].id == invitationId) {
+                invitations[i].datesChoises = _datesChoises;
+                return true;
+            }
+        }
     }
 
     // find all invitations created by an address
