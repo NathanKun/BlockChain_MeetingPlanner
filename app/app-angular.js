@@ -158,23 +158,23 @@ myApp.service('meetingService', ['accountService', function(accountService) {
 				"statusString" : mt[6].toNumber() == 0 ? "In progress" : "Closed"};
 		});
 	}
-	
+
 	meetingService.closeMeeting = function(meetingId) {
 		return deployedContract.CloseMeeting(meetingId, {from: accountService.loggedInUser});
 	}
-	
+
 	meetingService.setMeetingDescription = function(meetingId, newDesc) {
 		return deployedContract.setMeetingDescription(meetingId, newDesc, {from: accountService.loggedInUser});
 	}
-	
+
 	meetingService.setMeetingPlace = function(meetingId, newPlace) {
 		return deployedContract.setMeetingPlace(meetingId, newPlace, {from: accountService.loggedInUser});
 	}
-	
+
 	meetingService.setMeetingDates = function(meetingId, newDates) {
 		deployedContract.setMeetingDates(meetingId, newDates, {from: accountService.loggedInUser});
 	}
-	
+
 	meetingService.setMeetingRequired = function(meetingId, newReq) {
 		return deployedContract.setMeetingRequired(meetingId, (newReq == 'true'), {from: accountService.loggedInUser});
 	}
@@ -252,7 +252,7 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
   invitationService.setInvitationStatusCanceled = function(invitationId) {
     return setInvitationStatus(invitationId, 3);
   };
-  
+
   invitationService.setInvitationDatesChoises = function(invitationId, newDatesChoises) {
 	  return deployedContract.setInvitationDatesChoises(invitationId, newDatesChoises, {from: accountService.loggedInUser});
   }
@@ -368,15 +368,15 @@ myApp.controller('listMeetingController', function(meetingService, accountServic
   $scope.returnToIndex = function() {
 	  $location.path('/mainpage');
   };
-  
+
   $scope.goToModifyMeeting = function(meetingId) {
 	  $location.path('/modifyMeeting').search({"meetingId" : meetingId});
   }
-  
+
   $scope.addInvitation = function(meetingId) {
 	  $location.path('/addinvitation').search({"meetingId" : meetingId});
   }
-  
+
   $scope.closeMeeting = function(meetingId) {
 	  meetingService.closeMeeting(meetingId).then(function(){
 		document.getElementById('status-' + meetingId).innerHTML = 'Closed';
@@ -386,10 +386,10 @@ myApp.controller('listMeetingController', function(meetingService, accountServic
 	  });
   }
 });
- 
+
 //controller for MeetingIndex page
 myApp.controller('createMeetingController', function(meetingService, accountService, $scope, $location) {
-	
+
 	//create meeting function for button 'Create'
 	$scope.createMeeting = function() {
 		var datesToSave = [];
@@ -398,7 +398,7 @@ myApp.controller('createMeetingController', function(meetingService, accountServ
 		datesToSave.push(dateToUnix($scope.date3 + " " + $scope.time3));
 		datesToSave.push(dateToUnix($scope.date4 + " " + $scope.time4));
 		datesToSave.push(dateToUnix($scope.date5 + " " + $scope.time5));
-		
+
 		//call createContract() in MeetingIndexService service and pass 'description' from page to it
 		meetingService.createMeeting($scope.description, $scope.selectedRequired, $scope.lieu, datesToSave).then(function(){
 			alert("Meeting created");
@@ -421,7 +421,7 @@ myApp.controller('createMeetingController', function(meetingService, accountServ
 
 myApp.controller('modifyMeetingController', function(meetingService, $scope, $location) {
 	var meetingId = $location.search().meetingId;
-	
+
 	$scope.showingDiv = 1;
 	$scope.addDateDiv = function () {
 		if($scope.showingDiv < 5){
@@ -429,16 +429,16 @@ myApp.controller('modifyMeetingController', function(meetingService, $scope, $lo
 			$('#meetingbox').css('height', parseInt($('#meetingbox').css('height').replace('px', '')) + 88 + "px");
 		}
 	};
-	
+
 	meetingService.findMeetingById(meetingId).then(function(mt) {
 		var dates = mt.dates;
-		
+
 		// find how many date have been recored, and show them.
-	
+
 		$scope.showingDiv = dates[0] == 0 ? 0 : (dates[1] == 0 ? 1 : (dates[2] == 0 ? 2 : dates[3] == 0 ? 3 : (dates[4] == 0 ? 4 : 5)));
 		$('#meetingbox').css('height', 648 + 88 * ($scope.showingDiv - 1) + "px");
 		console.log($scope.showingDiv);
-		
+
 		$scope.date1 = dates[0] == 0 ? undefined : (new Date(dates[0].split(" ")[0]));
 		$scope.date2 = dates[1] == 0 ? undefined : (new Date(dates[1].split(" ")[0]));
 		$scope.date3 = dates[2] == 0 ? undefined : (new Date(dates[2].split(" ")[0]));
@@ -449,14 +449,14 @@ myApp.controller('modifyMeetingController', function(meetingService, $scope, $lo
 		$scope.time3 = dates[2] == 0 ? undefined : (dates[2].split(" ")[1]);
 		$scope.time4 = dates[3] == 0 ? undefined : (dates[3].split(" ")[1]);
 		$scope.time5 = dates[4] == 0 ? undefined : (dates[4].split(" ")[1]);
-		
+
 		$scope.place = mt.place;
 		$scope.required = mt.required;
 		$scope.description = mt.description;
-		
+
 		$scope.$apply();
 	});
-	
+
 	$scope.modifyMeeting = function() {
 		var datesToSave = [];
 		datesToSave.push($scope.time1 == undefined ? 0 : (dateToUnix($scope.date1 + " " + $scope.time1)));
@@ -469,10 +469,10 @@ myApp.controller('modifyMeetingController', function(meetingService, $scope, $lo
 		meetingService.setMeetingDescription(meetingId, $scope.description);
 		meetingService.setMeetingRequired(meetingId, $scope.selectedRequired);
 		meetingService.setMeetingPlace(meetingId, $scope.place);
-		
+
 		alert("Meeting Modified");
 	}
-	
+
 	$scope.returnToMeetingList = function() {
 		$location.path('/MeetingCreated');
 	};
@@ -497,7 +497,7 @@ myApp.controller('invitationController', function(accountService, invitationServ
     $scope.getAllParticipantPossibles = value;
     $scope.$apply();
   });
-  
+
   $scope.returnToMeetingList = function() {
 	  $location.path('/MeetingCreated');
   };
@@ -562,12 +562,12 @@ myApp.controller('myInvitationsController', function(accountService, invitationS
 		$scope.invitations = invitations;
 		$scope.$apply();
 	});
-	
+
 	$scope.proposeDate = function(invId) {
 		var btn = $('#propose-' + invId);
 		console.log(btn)
 		btn.replaceWith(angular.element('<input type="date" ng-model="invitations[$index].proposal" class="form-input" />'));
-		btn.append(angular.element('<button class="btn btn-info" ng-click="proposeDateConfirm(inv.id)">Proproser</button>'));
+		btn.after(angular.element('<button class="btn btn-info" ng-click="proposeDateConfirm(inv.id)">Proproser</button>'));
 	};
 
 	$scope.acceptInvitation = function(invId) {
@@ -578,19 +578,19 @@ myApp.controller('myInvitationsController', function(accountService, invitationS
 				break;
 			}
 		}
-		  
+
 		for(var i = 0; i < 5; i++) {
 			switch(datesChoises[i]) {
 				case true:
 				case 1:
 					datesChoises[i] = 1;
 					break;
-					
+
 				case false:
 				case 0:
 					datesChoises[i] = 0;
 				break;
-				
+
 				default:
 				break;
 			}
@@ -604,10 +604,10 @@ myApp.controller('myInvitationsController', function(accountService, invitationS
 				}
 			});
 		});
-		
+
 		console.log($scope.invitations);
 	};
-  
+
   $scope.returnToIndex = function() {
 	  $location.path('/mainpage');
   };
@@ -619,7 +619,10 @@ myApp.controller('mainPageController', function(accountService, $location, $scop
 		$scope.name = user.name;
 		$scope.$apply();
 	});
-
+  $scope.logout = function() {
+    $location.path('/');
+    accountService.logout();
+  }
 	$scope.createMeeting = function() { $location.path('/MeetingIndex'); }
 	$scope.listMeeting = function() { $location.path('/MeetingCreated'); }
 	$scope.myInvitations = function() { $location.path('/myinvitations'); };
@@ -628,7 +631,7 @@ myApp.controller('mainPageController', function(accountService, $location, $scop
 
 function unixToDate(unix) {
 	if(unix == 0) return 0;
-	
+
 	// Create a new JavaScript Date object based on the timestamp
 	// multiplied by 1000 so that the argument is in milliseconds, not seconds.
 	var dt = new Date(unix*1000);
@@ -643,9 +646,9 @@ function unixToDate(unix) {
 
 function dateToUnix(date) {
 	if(date == 0) return 0;
-	
+
 	date = formatDate(date);
-	
+
 	// date to second + AM(0)/PM(12 hours)
 	var rt = parseInt((new Date(date.split(" ")[0]).getTime() / 1000).toFixed(0)) + parseInt(date.split(" ")[1] == 'AM' ? 0 : 60 * 60 * 12);
 	if(rt == NaN)
