@@ -1,39 +1,45 @@
-<div ng-controller="myInvitationsController">
-	<div class="row">
-		<div class="col-md-12">
-			<table class="table">
-				<tr>
-					<th>Organizer</th><th>Description</th><th>Dates</th><th>Place</th><th>Meeting Status</th><th>Invitation Status</th><th>Action</th>
-				</tr>
-				<tr ng-repeat="inv in invitations track by $index">
-					<td>{{ inv.organizer }}</td>
-					<td>{{ inv.description }}</td>
-					<td>
-						<div ng-repeat="d in inv.dates track by $index">
-							<element ng-if="d != 0" style="font-size: 8px;">
-								<div class="form-check" ng-if="inv.invitationStatus == 'WAITING'" style="font-size: 8px;">
-									<input class="form-check-input" type="checkbox" ng-attr-id="{{ 'cb-' + inv.id + '-' + $index }}" ng-model="inv.datesChoises[$index]"/>
-									<label class="form-check-label" ng-attr-for="{{'cb-' + inv.id + '-' + $index}}">{{d}}</label>
-								</div>
-								<div class="form-check" ng-if="inv.invitationStatus == 'RESPONSED'" style="font-size: 8px;">
-									<input class="form-check-input" type="checkbox" ng-model="inv.datesChoises[$index]" disabled/>
-									<label class="form-check-label">{{d}}</label>
-								</div>
-							</element>
-						</div>
-					</td>
-					<td>{{ inv.place }}</td>
-					<td>{{ inv.meetingStatus }}</td>
-					<td>{{ inv.invitationStatus }}</td>
-					<td ng-if="inv.invitationStatus == 'WAITING'" ng-attr-id="{{inv.id + '-response'}}"><button class="btn btn-primary" ng-click="acceptInvitation(inv.id)">Accept</button></td>
-					<td ng-if="inv.invitationStatus == 'RESPONSED'"></td>
-				</tr>
-			</table>
+<div id="meeting-content" ng-controller="myInvitationsController">
+	<h1> Mes invitations</h1>
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12">
+				<table class="table table-inverse">
+					<tr>
+						<th>Organizer</th><th>Description</th><th>Dates</th><th>Place</th><th>Meeting Status</th><th>Invitation Status</th><th>Action</th>
+					</tr>
+					<tr ng-repeat="inv in invitations track by $index">
+						<td>{{ inv.organizer }}</td>
+						<td>{{ inv.description }}</td>
+						<td>
+							<div ng-repeat="d in inv.dates track by $index">
+								<element ng-if="d != 0" style="font-size: 8px;">
+									<div class="form-check" ng-if="inv.invitationStatus == 'WAITING'" style="font-size: 8px;">
+										<input class="form-check-input" type="checkbox" ng-attr-id="{{ 'cb-' + inv.id + '-' + $index }}" ng-model="inv.datesChoises[$index]"/>
+										<label class="form-check-label" ng-attr-for="{{'cb-' + inv.id + '-' + $index}}">{{d}}</label>
+									</div>
+									<div class="form-check" ng-if="inv.invitationStatus == 'RESPONSED'" style="font-size: 8px;">
+										<input class="form-check-input" type="checkbox" ng-model="inv.datesChoises[$index]" disabled/>
+										<label class="form-check-label">{{d}}</label>
+									</div>
+								</element>
+							</div>
+						</td>
+						<td>{{ inv.place }}</td>
+						<td>{{ inv.meetingStatus }}</td>
+						<td>{{ inv.invitationStatus }}</td>
+						<td ng-if="inv.invitationStatus == 'WAITING'" ng-attr-id="{{inv.id + '-response'}}">
+							<button class="btn btn-primary" ng-click="acceptInvitation(inv.id)">Accept</button>
+							<button class="btn btn-info" ng-click="proposeDate(inv.id)">Proproser</button>
+						</td>
+						<td ng-if="inv.invitationStatus == 'RESPONSED'"></td>
+					</tr>
+				</table>
+			</div>
 		</div>
-	</div>
-	<div class="row">
-		<div class="col-md-12">
-			<button class="btn btn-primary" ng-click="returnToIndex()">Return</button>
+		<div class="row">
+			<div class="col-md-12">
+				<button class="btn btn-primary" ng-click="returnToIndex()">Return</button>
+			</div>
 		</div>
 	</div>
 </div>

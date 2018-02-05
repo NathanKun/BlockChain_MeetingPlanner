@@ -66,13 +66,13 @@ myApp.service('accountService', function () {
 			accountService.loggedInUser = address;
 			return true;
 		} else {
-			loggedInUser = undefined;
+			accountService.loggedInUser = undefined;
 			return false;
 		}
 	};
 
 	accountService.logout = function() {
-		loggedInUser = undefined;
+		accountService.loggedInUser = undefined;
 	}
 
 	accountService.isAddressExists = function(address) {
@@ -557,11 +557,15 @@ myApp.controller('invitationController', function(accountService, invitationServ
 
 
 myApp.controller('myInvitationsController', function(accountService, invitationService, $scope, $location) {
-  invitationService.findAllInvitationReceived().then(function(invitations) {
-	console.log(invitations);
-    $scope.invitations = invitations;
-    $scope.$apply();
-  });
+	invitationService.findAllInvitationReceived().then(function(invitations) {
+		console.log(invitations);
+		$scope.invitations = invitations;
+		$scope.$apply();
+	});
+	
+	$scope.proposeDate = function(invId) {
+		
+	};
 
 	$scope.acceptInvitation = function(invId) {
 		var datesChoises;
