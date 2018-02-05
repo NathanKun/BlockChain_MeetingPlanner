@@ -3,7 +3,7 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-md-12">
-				<table class="table table-inverse">
+				<table class="table table-inverse" ng-show="invitations" ng-cloak>
 					<tr>
 						<th>Organizer</th><th>Description</th><th>Dates</th><th>Place</th><th>Meeting Status</th><th>Invitation Status</th><th>Action</th>
 					</tr>
@@ -29,7 +29,7 @@
 						<td>{{ inv.invitationStatus }}</td>
 						<td ng-if="inv.invitationStatus == 'WAITING'" ng-attr-id="{{inv.id + '-response'}}">
 							<button class="btn btn-primary" ng-click="acceptInvitation(inv.id)">Accept</button>
-							<button class="btn btn-info" ng-click="proposeDate(inv.id)">Proproser</button>
+							<button class="btn btn-info" ng-attr-id="{{ 'propose-' + inv.id }}" ng-click="proposeDate(inv.id)">Proproser</button>
 						</td>
 						<td ng-if="inv.invitationStatus == 'RESPONSED'"></td>
 					</tr>

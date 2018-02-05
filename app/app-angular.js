@@ -564,7 +564,10 @@ myApp.controller('myInvitationsController', function(accountService, invitationS
 	});
 	
 	$scope.proposeDate = function(invId) {
-		
+		var btn = $('#propose-' + invId);
+		console.log(btn)
+		btn.replaceWith(angular.element('<input type="date" ng-model="invitations[$index].proposal" class="form-input" />'));
+		btn.append(angular.element('<button class="btn btn-info" ng-click="proposeDateConfirm(inv.id)">Proproser</button>'));
 	};
 
 	$scope.acceptInvitation = function(invId) {
