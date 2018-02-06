@@ -416,6 +416,28 @@ myApp.controller('createMeetingController', function(meetingService, accountServ
 
 	//create meeting function for button 'Create'
 	$scope.createMeeting = function() {
+		if(!$scope.description) { 
+			alert("Description of the meeting is required");
+			return;
+		}
+		if(!$scope.date1) { 
+			alert("Date of the meeting is required");
+			return;
+		}
+		if(!$scope.time1) { 
+			alert("Time of the meeting is required");
+			return;
+		}
+		if(!$scope.selectedRequired) { 
+			alert("IsRequired of the meeting is required");
+			return;
+		}
+		if(!$scope.lieu) { 
+			alert("Place of the meeting is required");
+			return;
+		}
+		
+		
 		var datesToSave = [];
 		
 		datesToSave.push(dateToUnix($filter('date')($scope.date1, "yyyy-MM-dd") + " " + $scope.time1));
@@ -423,7 +445,7 @@ myApp.controller('createMeetingController', function(meetingService, accountServ
 		datesToSave.push(dateToUnix($filter('date')($scope.date3, "yyyy-MM-dd") + " " + $scope.time3));
 		datesToSave.push(dateToUnix($filter('date')($scope.date4, "yyyy-MM-dd") + " " + $scope.time4));
 		datesToSave.push(dateToUnix($filter('date')($scope.date5, "yyyy-MM-dd") + " " + $scope.time5));
-console.log(datesToSave);
+		
 		//call createContract() in MeetingIndexService service and pass 'description' from page to it
 		meetingService.createMeeting($scope.description, $scope.selectedRequired, $scope.lieu, datesToSave).then(function(){
 			alert("Meeting created");
@@ -482,6 +504,27 @@ myApp.controller('modifyMeetingController', function(meetingService, $scope, $lo
 	});
 
 	$scope.modifyMeeting = function() {
+		if(!$scope.description) { 
+			alert("Description of the meeting is required");
+			return;
+		}
+		if(!$scope.date1) { 
+			alert("Date of the meeting is required");
+			return;
+		}
+		if(!$scope.time1) { 
+			alert("Time of the meeting is required");
+			return;
+		}
+		if(!$scope.selectedRequired) { 
+			alert("IsRequired of the meeting is required");
+			return;
+		}
+		if(!$scope.place) { 
+			alert("Place of the meeting is required");
+			return;
+		}
+		
 		var datesToSave = [];
 		datesToSave.push($scope.time1 == undefined ? 0 : (dateToUnix($filter('date')($scope.date1, "yyyy-MM-dd") + " " + $scope.time1)));
 		datesToSave.push($scope.time2 == undefined ? 0 : (dateToUnix($filter('date')($scope.date2, "yyyy-MM-dd") + " " + $scope.time2)));
@@ -515,25 +558,24 @@ myApp.controller('LoginController', function(accountService, $scope, $location) 
 
 //#############################################################################################################
 myApp.controller('invitationController', function(accountService, invitationService, meetingService, $scope, $location) {
-  var listAdd = [];
-  //Find all possible participants
-  invitationService.findAllParticipantPossible().then(function(value) {
-    $scope.getAllParticipantPossibles = value;
-    $scope.$apply();
-  });
+	var listAdd = [];
+	//Find all possible participants
+	invitationService.findAllParticipantPossible().then(function(value) {
+		$scope.getAllParticipantPossibles = value;
+		$scope.$apply();
+	});
 
-  $scope.returnToMeetingList = function() {
-	  $location.path('/MeetingCreated');
-  };
+	$scope.returnToMeetingList = function() {
+		$location.path('/MeetingCreated');
+	};
 
-  //Create invitation into invitation list
-  $scope.addInvitation = function() {
-    // listAdd.push($scope.participant);
-
-    //console.log($scope.participant);
-    invitationService.addInvitation($scope.participant, $location.search().meetingId);
-    getAllInvitations();
-  }
+	//Create invitation into invitation list
+	$scope.addInvitation = function() {
+	if(!$scope.participant) return;
+		//console.log($scope.participant);
+		invitationService.addInvitation($scope.participant, $location.search().meetingId);
+		getAllInvitations();
+	}
 
 	//Find all invitations of a meeting
 	getAllInvitations();
