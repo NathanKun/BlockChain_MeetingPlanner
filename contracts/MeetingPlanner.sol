@@ -55,32 +55,6 @@ contract MeetingPlanner {
         userList[0xea8328fca972e48d9bec1039400be99d4ce760be] =
             User("Gael", "g.o@groupe-esigelec.org");
 
-		// seed of meeting
-		meetingList.push(Meeting({id: 1, manager: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
-			description: "meeting 1", required: true , lieu: 'rue m1',
-			dates: [uint32(1517526000), 1517569200, 1517612400, 0, 0],
-			status: Status.InPROGRESS}));
-		meetingList.push(Meeting({id: 2, manager: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
-			description: "meeting 2", required: true , lieu: 'rue meeting 2',
-			dates: [uint32(1517526000), 1517612400, 1517655600, 1517742000, 0],
-			status: Status.InPROGRESS}));
-		meetingList.push(Meeting({id: 3, manager: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
-			description: "meeting 3", required: true , lieu: 'rue 3',
-			dates: [uint32(1517569200), 1517655600, 1517828400, 1517871600, 1517914800],
-			status: Status.InPROGRESS}));
-		// seed of invitation
-        invitations.push(
-            Invitation({id: 1, organizer: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
-			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 1,
-			invitationStatus: InvitationStatus.WAITING, datesChoises: [uint32(0), 0, 0, 0, 0]}));
-        invitations.push(
-            Invitation({id: 2, organizer: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
-			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 2,
-			invitationStatus: InvitationStatus.WAITING, datesChoises: [uint32(0), 0, 0, 0, 0]}));
-        invitations.push(
-            Invitation({id: 3, organizer: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
-			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 3,
-			invitationStatus: InvitationStatus.WAITING, datesChoises: [uint32(0), 0, 0, 0, 0]}));
 	}
 
 		/* Methods for invitation */
