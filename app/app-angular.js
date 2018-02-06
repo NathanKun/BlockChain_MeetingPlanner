@@ -112,6 +112,7 @@ myApp.service('meetingService', ['accountService', function(accountService) {
 
   // add createMeeting function to service
   meetingService.createMeeting = function(description, required, lieu, dates) {
+	  console.log(required);
     return deployedContract.CreateMeeting(description, (required == 'true'), lieu, dates, true, {
       from: accountService.getLoggedInAddress()
     });
@@ -144,30 +145,41 @@ myApp.service('meetingService', ['accountService', function(accountService) {
   }
 
 
-  meetingService.findMeetingById = function(meetingId) {
+	meetingService.findMeetingById = function(meetingId) {
 		return deployedContract.findMeetingById.call(meetingId).then(function(mt) {
 			var dates = mt[5];
 			var datesToShow = [];
 			for(var i = 0; i < dates.length; i++) {
 				datesToShow.push(unixToDate(dates[i].toNumber()));
 			}
-      //console.log(mt);
-      //console.log(mt[7][1].toNumber());
-      var maxChoice = 0;
-      var dateChoices = mt[7];
-      for(var j = 0; j < 5; j++){
-        if(dateChoices[j] > maxChoice){
-          maxChoice = dateChoices[j];
-      }
-    }
+			console.log(dates);
+			console.log(datesToShow);
+			//console.log(mt);
+			//console.log(mt[7][1].toNumber());
+			var maxChoice = 0;
+			var dateChoices = mt[7];
+			for(var j = 0; j < 5; j++){
+				if(dateChoices[j] > maxChoice){
+					maxChoice = dateChoices[j];
+				}
+			}
 			if(maxChoice != 0){
-        maxChoice = maxChoice.toNumber();
-      }
-      console.log(maxChoice);
+				maxChoice = maxChoice.toNumber();
+			}
+			console.log(maxChoice);
 			// uint id, bool required, address manager, string description, string lieu, uint date, Status status
-			return {"id" : mt[0].toNumber(), "required" : mt[1], "organizer" : mt[2], "description" : mt[3],
-				"place" : mt[4], "dates" : datesToShow, "statusNumber" : mt[6].toNumber(),
-				"statusString" : mt[6].toNumber() == 0 ? "In progress" : "Closed", "finalDateChoises" : mt[7], "maxChoice": maxChoice};
+			return {
+				"id" : mt[0].toNumber(), 
+				"required" : mt[1], 
+				"organizer" : mt[2], 
+				"description" : mt[3],
+				"place" : mt[4], 
+				"dates" : datesToShow, 
+				"statusNumber" : mt[6].toNumber(),
+				"statusString" : mt[6].toNumber() == 0 ? "In progress" : "Closed", 
+				"finalDateChoises" : mt[7], 
+				"maxChoice": maxChoice
+			};
 		});
 	}
 
@@ -439,6 +451,10 @@ myApp.controller('createMeetingController', function(meetingService, accountServ
 		
 		
 		var datesToSave = [];
+		console.log($scope.date1);
+		console.log($scope.time1);
+		console.log($filter('date')($scope.date1, "yyyy-MM-dd") + " " + $scope.time1);
+		console.log(dateToUnix($filter('date')($scope.date1, "yyyy-MM-dd") + " " + $scope.time1));
 		
 		datesToSave.push(dateToUnix($filter('date')($scope.date1, "yyyy-MM-dd") + " " + $scope.time1));
 		datesToSave.push(dateToUnix($filter('date')($scope.date2, "yyyy-MM-dd") + " " + $scope.time2));
@@ -759,7 +775,7 @@ function unixToDate(unix) {
 	var year = dt.getFullYear();
 	var month = dt.getMonth() + 1;
 	var day = dt.getDate();
-	var time = dt.getHours() == 0 ? "AM" : "PM";
+	var time = (dt.getHours() == 0 || dt.getHours() == 1) ? "AM" : "PM";
 
 	// Will display time in 10:30:23 format
 	return year + "-" + month + "-" + day + " " + time;
