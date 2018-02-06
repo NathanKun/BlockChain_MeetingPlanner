@@ -3,6 +3,7 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-md-12">
+				<div id="ajax-loader"><img src="assets/loader.gif" alt="ajax loader" /></div>
 				<table class="table table-inverse" ng-show="invitations" ng-cloak>
 					<tr>
 						<th>Organizer</th><th>Description</th><th>Dates</th><th>Place</th><th>Meeting Status</th><th>Invitation Status</th><th>Action</th>
@@ -26,10 +27,10 @@
 						</td>
 						<td>{{ inv.place }}</td>
 						<td>{{ inv.meetingStatus }}</td>
-						<td>{{ inv.invitationStatus }}</td>
+						<td ng-attr-id="{{inv.id + '-invitationStatus'}}">{{ inv.invitationStatus }}</td>
 						<td ng-if="inv.invitationStatus == 'WAITING'" ng-attr-id="{{inv.id + '-response'}}">
-							<button class="btn btn-primary" ng-click="acceptInvitation(inv.id)">Accept</button>
-							<button class="btn btn-info" ng-attr-id="{{ 'propose-' + inv.id }}" ng-click="proposeDate(inv.id)">Proproser</button>
+							<button class="btn btn-primary" ng-click="acceptInvitation(inv.id)">Accept</button><br/>
+							<button ng-if="inv.datesLength < 5" class="btn btn-info" ng-attr-id="{{ 'propose-btn-' + inv.id }}" ng-click="proposeDate(inv.id)">Proproser</button>
 						</td>
 						<td ng-if="inv.invitationStatus == 'RESPONSED'"></td>
 					</tr>

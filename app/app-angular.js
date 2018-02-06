@@ -280,11 +280,23 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
                 //console.log(invitation);
                 //console.log(meeting);
                 //console.log(org);
+				
+				var datesLength = 0;
+				for(var i = 0; i < 5; i++) {
+					if(meeting.dates[i] == 0){
+						datesLength = i;
+						break;
+					}
+					if(i == 4)
+						datesLength = 5;
+				}
 
                 return {
                   "id": invitation.id,
+				  "meetingId": invitation.meetingId,
                   "description": meeting.description,
                   "dates": meeting.dates,
+				  "datesLength": datesLength,
                   "datesChoises": invitation.datesChoises,
                   "place": meeting.place,
                   "meetingStatus": meeting.statusString,
@@ -356,49 +368,51 @@ myApp.service('invitationService', ['accountService', 'meetingService', function
  */
 
 myApp.controller('listMeetingController', function(meetingService, accountService, $scope, $location) {
-  var meetingList = [];
+	var meetingList = [];
 
-  meetingService.getMeetingCreated(accountService.getLoggedInAddress()).then(function(mt){
-    $scope.meetingList = mt;
-    //console.log($scope.meetingList)
-    $scope.$apply();
-  });
+	meetingService.getMeetingCreated(accountService.getLoggedInAddress()).then(function(mt){
+		$scope.meetingList = mt;
+		//console.log($scope.meetingList)
+		showLoader(false);
+		$scope.$apply();
+	});
 
 
-  $scope.returnToIndex = function() {
-	  $location.path('/mainpage');
-  };
+	$scope.returnToIndex = function() {
+		$location.path('/mainpage');
+	};
 
-  $scope.goToModifyMeeting = function(meetingId) {
-	  $location.path('/modifyMeeting').search({"meetingId" : meetingId});
-  }
+	$scope.goToModifyMeeting = function(meetingId) {
+		$location.path('/modifyMeeting').search({"meetingId" : meetingId});
+	}
 
-  $scope.addInvitation = function(meetingId) {
-	  $location.path('/addinvitation').search({"meetingId" : meetingId});
-  }
+	$scope.addInvitation = function(meetingId) {
+		$location.path('/addinvitation').search({"meetingId" : meetingId});
+	}
 
-  $scope.closeMeeting = function(meetingId) {
-	  meetingService.closeMeeting(meetingId).then(function(){
-		document.getElementById('status-' + meetingId).innerHTML = 'Closed';
-		document.getElementById('btn1-' + meetingId).innerHTML = 'Closed';
-		document.getElementById('btn2-' + meetingId).innerHTML = 'Closed';
-		document.getElementById('btn3-' + meetingId).innerHTML = 'Closed';
-	  });
-  }
+	$scope.closeMeeting = function(meetingId) {
+		meetingService.closeMeeting(meetingId).then(function(){
+			$('#status-' + meetingId).html('Closed');
+			$('#btn1-' + meetingId).html('Closed');
+			$('#btn2-' + meetingId).html('Closed');
+			$('#btn3-' + meetingId).html('Closed');
+		});
+	}
 });
 
 //controller for MeetingIndex page
-myApp.controller('createMeetingController', function(meetingService, accountService, $scope, $location) {
+myApp.controller('createMeetingController', function(meetingService, accountService, $scope, $location, $filter) {
 
 	//create meeting function for button 'Create'
 	$scope.createMeeting = function() {
 		var datesToSave = [];
-		datesToSave.push(dateToUnix($scope.date1 + " " + $scope.time1));
-		datesToSave.push(dateToUnix($scope.date2 + " " + $scope.time2));
-		datesToSave.push(dateToUnix($scope.date3 + " " + $scope.time3));
-		datesToSave.push(dateToUnix($scope.date4 + " " + $scope.time4));
-		datesToSave.push(dateToUnix($scope.date5 + " " + $scope.time5));
-
+		
+		datesToSave.push(dateToUnix($filter('date')($scope.date1, "yyyy-MM-dd") + " " + $scope.time1));
+		datesToSave.push(dateToUnix($filter('date')($scope.date2, "yyyy-MM-dd") + " " + $scope.time2));
+		datesToSave.push(dateToUnix($filter('date')($scope.date3, "yyyy-MM-dd") + " " + $scope.time3));
+		datesToSave.push(dateToUnix($filter('date')($scope.date4, "yyyy-MM-dd") + " " + $scope.time4));
+		datesToSave.push(dateToUnix($filter('date')($scope.date5, "yyyy-MM-dd") + " " + $scope.time5));
+console.log(datesToSave);
 		//call createContract() in MeetingIndexService service and pass 'description' from page to it
 		meetingService.createMeeting($scope.description, $scope.selectedRequired, $scope.lieu, datesToSave).then(function(){
 			alert("Meeting created");
@@ -419,7 +433,7 @@ myApp.controller('createMeetingController', function(meetingService, accountServ
 	}
 });
 
-myApp.controller('modifyMeetingController', function(meetingService, $scope, $location) {
+myApp.controller('modifyMeetingController', function(meetingService, $scope, $location, $filter) {
 	var meetingId = $location.search().meetingId;
 
 	$scope.showingDiv = 1;
@@ -459,11 +473,11 @@ myApp.controller('modifyMeetingController', function(meetingService, $scope, $lo
 
 	$scope.modifyMeeting = function() {
 		var datesToSave = [];
-		datesToSave.push($scope.time1 == undefined ? 0 : (dateToUnix($scope.date1 + " " + $scope.time1)));
-		datesToSave.push($scope.time2 == undefined ? 0 : (dateToUnix($scope.date2 + " " + $scope.time2)));
-		datesToSave.push($scope.time3 == undefined ? 0 : (dateToUnix($scope.date3 + " " + $scope.time3)));
-		datesToSave.push($scope.time4 == undefined ? 0 : (dateToUnix($scope.date4 + " " + $scope.time4)));
-		datesToSave.push($scope.time5 == undefined ? 0 : (dateToUnix($scope.date5 + " " + $scope.time5)));
+		datesToSave.push($scope.time1 == undefined ? 0 : (dateToUnix($filter('date')($scope.date1, "yyyy-MM-dd") + " " + $scope.time1)));
+		datesToSave.push($scope.time2 == undefined ? 0 : (dateToUnix($filter('date')($scope.date2, "yyyy-MM-dd") + " " + $scope.time2)));
+		datesToSave.push($scope.time3 == undefined ? 0 : (dateToUnix($filter('date')($scope.date3, "yyyy-MM-dd") + " " + $scope.time3)));
+		datesToSave.push($scope.time4 == undefined ? 0 : (dateToUnix($filter('date')($scope.date4, "yyyy-MM-dd") + " " + $scope.time4)));
+		datesToSave.push($scope.time5 == undefined ? 0 : (dateToUnix($filter('date')($scope.date5, "yyyy-MM-dd") + " " + $scope.time5)));
 
 		meetingService.setMeetingDates(meetingId, datesToSave);
 		meetingService.setMeetingDescription(meetingId, $scope.description);
@@ -511,8 +525,8 @@ myApp.controller('invitationController', function(accountService, invitationServ
     getAllInvitations();
   }
 
-  //Find all invitations of a meeting
-  getAllInvitations();
+	//Find all invitations of a meeting
+	getAllInvitations();
 
    function getAllInvitations() {
     var thisMeetingId = $location.search().meetingId;
@@ -556,19 +570,71 @@ myApp.controller('invitationController', function(accountService, invitationServ
 });
 
 
-myApp.controller('myInvitationsController', function(accountService, invitationService, $scope, $location) {
+myApp.controller('myInvitationsController', function(accountService, meetingService, invitationService, $scope, $location, $compile, $route, $timeout) {
 	invitationService.findAllInvitationReceived().then(function(invitations) {
 		console.log(invitations);
 		$scope.invitations = invitations;
+		showLoader(false);
 		$scope.$apply();
 	});
 
 	$scope.proposeDate = function(invId) {
-		var btn = $('#propose-' + invId);
-		console.log(btn)
-		btn.replaceWith(angular.element('<input type="date" ng-model="invitations[$index].proposal" class="form-input" />'));
-		btn.after(angular.element('<button class="btn btn-info" ng-click="proposeDateConfirm(inv.id)">Proproser</button>'));
+		var btn = $('#propose-btn-' + invId);
+		// remove and reinsert the element to force angular
+		// to forget about the current element	
+		btn.replaceWith($('#propose-btn-' + invId));
+		
+		// after button after it
+		var newBtn = angular.element('<button class="btn btn-info" ng-click="proposeDateConfirm(' + invId + ')">Proproser</button>');
+		btn.after(newBtn);
+		$compile(newBtn)($scope);
+		
+		// replace it with input field
+		for(var i = 0; i < $scope.invitations.length; i++) {
+			if($scope.invitations[i].id == invId){
+				break;
+			}
+		}
+		btn.replaceWith('<input type="date" id="propose-date-' + invId + '" class="form-input" /><br/>' + 
+			'<label class="radio-inline">' + 
+			'<input type="radio" name="propose-time-' + invId + '" value="AM" checked="checked"> Matin' + 
+			'<input type="radio" name="propose-time-' + invId + '" value="PM"> Soir</label>');
 	};
+	
+	$scope.proposeDateConfirm = function(invId) {
+		var time = $('input[type="radio"][name="propose-time-' + invId + '"]:checked').val()
+		
+		var date = $('#propose-date-' + invId).val();
+		if(!date) {
+			alert("Date not correct");
+			return;
+		}
+		
+		for(var i = 0; i < $scope.invitations.length; i++) {
+			if($scope.invitations[i].id == invId){
+				break;
+			}
+		}
+		var meetingId = $scope.invitations[i].meetingId;
+		meetingService.findMeetingById(meetingId).then(function(meeting) {
+			var dates = meeting.dates;
+			var datesToSave = [];
+			for(var i = 0; i < 5; i++) {
+				if(dates[i] != 0)
+					datesToSave.push(dateToUnix(dates[i]));
+			}
+			datesToSave.push(dateToUnix(date + " " + time));
+			
+			for(var i = 0; i < 5 - datesToSave.length; i++) {
+				datesToSave.push(0);
+			}
+			console.log(datesToSave);
+			meetingService.setMeetingDates(meetingId, datesToSave);
+			$route.reload();
+		});
+		
+		
+	}
 
 	$scope.acceptInvitation = function(invId) {
 		var datesChoises;
@@ -598,7 +664,10 @@ myApp.controller('myInvitationsController', function(accountService, invitationS
 		invitationService.setInvitationDatesChoises(invId, datesChoises).then(function(isFound) {
 			invitationService.setInvitationStatusAccepted(invId).then(function(response) {
 				if (response == "ok" && isFound) {
-					document.getElementById(invId + '-response').innerHTML = 'RESPONSED';
+					$('#' + invId + '-response').html('RESPONSED');
+					$('#' + invId + '-invitationStatus').html('RESPONSED');
+					
+					//$timeout(function() { ;$route.reload(); }, 1000);
 				} else {
 					alert(response);
 				}
@@ -657,13 +726,17 @@ function dateToUnix(date) {
 }
 
 function formatDate(date) {
-    var d = new Date(date),
-        month = '' + (d.getMonth() + 1),
-        day = '' + d.getDate(),
-        year = d.getFullYear();
+    var d = new Date(date.split(" ")[0]);
+	month = '' + (d.getMonth() + 1);
+	day = '' + d.getDate();
+	year = d.getFullYear();
 
     if (month.length < 2) month = '0' + month;
     if (day.length < 2) day = '0' + day;
 
-    return [year, month, day].join('-');
+    return [year, month, day].join('-') + " " + date.split(" ")[1];
+}
+
+function showLoader(toShow) {
+	if(toShow) $('#ajax-loader').show(); else $('#ajax-loader').hide();
 }
