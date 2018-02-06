@@ -22,7 +22,17 @@
 					<td>{{meeting.required}}</td>
 					<td>{{meeting.place}}</td>
 					<td>
-						<div ng-repeat="d in meeting.dates track by $index"><element ng-if="d != 0" style="font-size: 8px;">{{d}}</element></div>
+						<div ng-repeat="d in meeting.dates track by $index">
+
+								<element ng-if="d != 0" style="font-size: 8px;">
+									<element ng-if="meeting.finalDateChoises[$index] == meeting.maxChoice" style="color:green;">
+										{{d + " " + meeting.finalDateChoises[$index]}}
+									</element>
+									<element ng-if="meeting.finalDateChoises[$index] != meeting.maxChoice">
+										{{d + " " + meeting.finalDateChoises[$index]}}
+									</element>
+								</element>
+						</div>
 					</td>
 					<td ng-attr-id='{{ "status-" + meeting.id }}'>{{meeting.statusString}}</td>
 					<td ng-attr-id='{{ "btn1-" + meeting.id }}' ng-if="meeting.statusNumber == 0"><button class="btn btn-success" ng-click="goToModifyMeeting(meeting.id)">Modifier</button></td>

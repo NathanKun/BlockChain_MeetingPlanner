@@ -57,29 +57,29 @@ contract MeetingPlanner {
 
 		// seed of meeting
 		meetingList.push(Meeting({id: 1, manager: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
-			description: "meeting 1", required: true , lieu: 'rue m1', 
-			dates: [uint32(1517526000), 1517569200, 1517612400, 0, 0], 
+			description: "meeting 1", required: true , lieu: 'rue m1',
+			dates: [uint32(1517526000), 1517569200, 1517612400, 0, 0],
 			status: Status.InPROGRESS}));
 		meetingList.push(Meeting({id: 2, manager: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
-			description: "meeting 2", required: true , lieu: 'rue meeting 2', 
-			dates: [uint32(1517526000), 1517612400, 1517655600, 1517742000, 0], 
+			description: "meeting 2", required: true , lieu: 'rue meeting 2',
+			dates: [uint32(1517526000), 1517612400, 1517655600, 1517742000, 0],
 			status: Status.InPROGRESS}));
 		meetingList.push(Meeting({id: 3, manager: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
-			description: "meeting 3", required: true , lieu: 'rue 3', 
-			dates: [uint32(1517569200), 1517655600, 1517828400, 1517871600, 1517914800], 
+			description: "meeting 3", required: true , lieu: 'rue 3',
+			dates: [uint32(1517569200), 1517655600, 1517828400, 1517871600, 1517914800],
 			status: Status.InPROGRESS}));
 		// seed of invitation
         invitations.push(
             Invitation({id: 1, organizer: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
-			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 1, 
+			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 1,
 			invitationStatus: InvitationStatus.WAITING, datesChoises: [uint32(0), 0, 0, 0, 0]}));
         invitations.push(
             Invitation({id: 2, organizer: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
-			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 2, 
+			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 2,
 			invitationStatus: InvitationStatus.WAITING, datesChoises: [uint32(0), 0, 0, 0, 0]}));
         invitations.push(
             Invitation({id: 3, organizer: 0x4db2da7660a1e2edc15cacd815c39d0574103cb3,
-			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 3, 
+			participant: 0x013ba5d38f3a03c63909d48be7a81df2b60a61f4, meetingId: 3,
 			invitationStatus: InvitationStatus.WAITING, datesChoises: [uint32(0), 0, 0, 0, 0]}));
 	}
 
@@ -95,11 +95,19 @@ contract MeetingPlanner {
     /* Methods for Meeting */
 	// find meeting by id
 	function findMeetingById(uint meetingId) public constant returns(uint id, bool required, address manager,
-		string description, string lieu, uint32[5] dates, Status status) {
+		string description, string lieu, uint32[5] dates, Status status, uint32[5] finaldateChoise) {
 		for(uint i = 0; i < meetingList.length; i++) {
 			if(meetingList[i].id == meetingId) {
+				uint32[5] memory dateChoisesOfInvitation = [uint32(0), 0, 0, 0, 0];
+				for(uint j = 0; j < invitations.length; j++){
+					if(invitations[j].meetingId == meetingList[i].id){
+						for(uint k=0; k<5; k++){
+							dateChoisesOfInvitation[k] = dateChoisesOfInvitation[k] + invitations[j].datesChoises[k];
+						}
+					}
+				}
 				return (meetingList[i].id, meetingList[i].required, meetingList[i].manager,
-					meetingList[i].description, meetingList[i].lieu, meetingList[i].dates, meetingList[i].status);
+					meetingList[i].description, meetingList[i].lieu, meetingList[i].dates, meetingList[i].status, dateChoisesOfInvitation);
 			}
 		}
 	}
@@ -119,14 +127,14 @@ contract MeetingPlanner {
     }
 
 	//Search a meeting with some id argument
-	function SearchMeeting(uint id) public constant returns 
-	    (bool exist, uint meeting_id, address manager,string description, 
+	function SearchMeeting(uint id) public constant returns
+	    (bool exist, uint meeting_id, address manager,string description,
 	    bool required, string lieu , uint32[5] dates, Status status) {
 
 		for( uint j=0 ; j < meetingList.length ; j++){
 			if(meetingList[j].id == id ){
-				return (true, meetingList[j].id, meetingList[j].manager, 
-    				meetingList[j].description, meetingList[j].required, 
+				return (true, meetingList[j].id, meetingList[j].manager,
+    				meetingList[j].description, meetingList[j].required,
     				meetingList[j].lieu, meetingList[j].dates, meetingList[j].status);
 			}
         }
@@ -217,7 +225,7 @@ contract MeetingPlanner {
     // add an new invitations to storage
     function addInvitation(address participant, uint meetingId) public{
         invitations.push(
-            Invitation(invitations.length + 1, msg.sender, participant, meetingId, 
+            Invitation(invitations.length + 1, msg.sender, participant, meetingId,
             InvitationStatus.WAITING, [uint32(0), 0, 0, 0, 0]));
 	  }
 
@@ -243,7 +251,7 @@ contract MeetingPlanner {
         }
         return false;
     }
-	
+
     // change dates choises
     function setInvitationDatesChoises(uint invitationId, uint32[5] _datesChoises) public returns (bool isFound){
         for (uint i = 0; i < invitations.length; i++) {
@@ -253,6 +261,8 @@ contract MeetingPlanner {
             }
         }
     }
+
+
 
     // find all invitations created by an address
     function findAllInvitationIdCreated(address orga) constant public returns (uint[20] ids){

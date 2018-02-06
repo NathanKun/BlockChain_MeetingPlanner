@@ -151,11 +151,23 @@ myApp.service('meetingService', ['accountService', function(accountService) {
 			for(var i = 0; i < dates.length; i++) {
 				datesToShow.push(unixToDate(dates[i].toNumber()));
 			}
-			//console.log(datesToShow);
+      //console.log(mt);
+      //console.log(mt[7][1].toNumber());
+      var maxChoice = 0;
+      var dateChoices = mt[7];
+      for(var j = 0; j < 5; j++){
+        if(dateChoices[j] > maxChoice){
+          maxChoice = dateChoices[j];
+      }
+    }
+			if(maxChoice != 0){
+        maxChoice = maxChoice.toNumber();
+      }
+      console.log(maxChoice);
 			// uint id, bool required, address manager, string description, string lieu, uint date, Status status
 			return {"id" : mt[0].toNumber(), "required" : mt[1], "organizer" : mt[2], "description" : mt[3],
 				"place" : mt[4], "dates" : datesToShow, "statusNumber" : mt[6].toNumber(),
-				"statusString" : mt[6].toNumber() == 0 ? "In progress" : "Closed"};
+				"statusString" : mt[6].toNumber() == 0 ? "In progress" : "Closed", "finalDateChoises" : mt[7], "maxChoice": maxChoice};
 		});
 	}
 
@@ -377,7 +389,6 @@ myApp.controller('listMeetingController', function(meetingService, accountServic
 		$scope.$apply();
 	});
 
-
 	$scope.returnToIndex = function() {
 		$location.path('/mainpage');
 	};
@@ -452,7 +463,6 @@ myApp.controller('modifyMeetingController', function(meetingService, $scope, $lo
 		$scope.showingDiv = dates[0] == 0 ? 0 : (dates[1] == 0 ? 1 : (dates[2] == 0 ? 2 : dates[3] == 0 ? 3 : (dates[4] == 0 ? 4 : 5)));
 		$('#meetingbox').css('height', 648 + 88 * ($scope.showingDiv - 1) + "px");
 		console.log($scope.showingDiv);
-
 		$scope.date1 = dates[0] == 0 ? undefined : (new Date(dates[0].split(" ")[0]));
 		$scope.date2 = dates[1] == 0 ? undefined : (new Date(dates[1].split(" ")[0]));
 		$scope.date3 = dates[2] == 0 ? undefined : (new Date(dates[2].split(" ")[0]));
